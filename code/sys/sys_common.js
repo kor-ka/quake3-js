@@ -75,27 +75,7 @@ var LibrarySysCommon = {
 			'8.         General Provisions.  Neither this Agreement nor any part or portion hereof shall be assigned or sublicensed by you.  ID may assign its rights under this Agreement in ID\'s sole discretion.  Should any provision of this Agreement be held to be void, invalid, unenforceable or illegal by a court of competent jurisdiction, the validity and enforceability of the other provisions shall not be affected thereby.  If any provision is determined to be unenforceable by a court of competent jurisdiction, you agree to a modification of such provision to provide for enforcement of the provision\'s intent, to the extent permitted by applicable law. Failure of ID to enforce any provision of this Agreement shall not constitute or be construed as a waiver of such provision or of the right to enforce such provision.  Immediately upon your failure to comply with or breach of any term or provision of this Agreement, THIS AGREEMENT AND YOUR LICENSE SHALL AUTOMATICALLY TERMINATE, WITHOUT NOTICE, AND ID MAY PURSUE ALL RELIEF AND REMEDIES AGAINST YOU WHICH ARE AVAILABLE UNDER APPLICABLE LAW AND/OR THIS AGREEMENT.   In the event this Agreement is terminated, you shall have no right to use the Software, in any manner, and you shall immediately destroy all copies of the Software in your possession, custody or control.\n\n\n\n' +
 			'YOU ACKNOWLEDGE THAT YOU HAVE READ THIS AGREEMENT, YOU UNDERSTAND THIS AGREEMENT, AND UNDERSTAND THAT BY CONTINUING THE INSTALLATION OF THE SOFTWARE, BY LOADING OR RUNNING THE SOFTWARE, OR BY PLACING OR COPYING THE SOFTWARE ONTO YOUR COMPUTER HARD DRIVE OR RAM, YOU AGREE TO BE BOUND BY THE TERMS AND CONDITIONS OF THIS AGREEMENT.  YOU FURTHER AGREE THAT, EXCEPT FOR WRITTEN SEPARATE AGREEMENTS BETWEEN ID AND YOU, THIS AGREEMENT IS A COMPLETE AND EXCLUSIVE STATEMENT OF THE RIGHTS AND LIABILITIES OF THE PARTIES HERETO.  THIS AGREEMENT SUPERSEDES ALL PRIOR ORAL AGREEMENTS, PROPOSALS OR UNDERSTANDINGS, AND ANY OTHER COMMUNICATIONS BETWEEN ID AND YOU RELATING TO THE SUBJECT MATTER OF THIS AGREEMENT.',
 		installers: [
-			{
-				name: 'linuxq3ademo-1.11-6.x86.gz.sh',
-				offset: 5468,
-				paks: [
-					{ src: 'demoq3/pak0.pk3', dest: 'baseq3/pak0.pk3', checksum: 2483777038 }
-				]
-			},
-			{
-				name: 'linuxq3apoint-1.32b-3.x86.run',
-				offset: 8251,
-				paks: [
-					{ src: 'baseq3/pak1.pk3', dest: 'baseq3/pak1.pk3', checksum: 1635885364 },
-					{ src: 'baseq3/pak2.pk3', dest: 'baseq3/pak2.pk3', checksum: 2142044321 },
-					{ src: 'baseq3/pak3.pk3', dest: 'baseq3/pak3.pk3', checksum: 682311620 },
-					{ src: 'baseq3/pak4.pk3', dest: 'baseq3/pak4.pk3', checksum: 4113726565 },
-					{ src: 'baseq3/pak5.pk3', dest: 'baseq3/pak5.pk3', checksum: 590466266 },
-					{ src: 'baseq3/pak6.pk3', dest: 'baseq3/pak6.pk3', checksum: 231612509 },
-					{ src: 'baseq3/pak7.pk3', dest: 'baseq3/pak7.pk3', checksum: 3663817674 },
-					{ src: 'baseq3/pak8.pk3', dest: 'baseq3/pak8.pk3', checksum: 136401958 }
-				]
-			}
+
 		],
 		manifest: null,
 		Print: function (str) {
@@ -201,7 +181,7 @@ var LibrarySysCommon = {
 		DownloadAsset: function (asset, onprogress, onload) {
 			var root = SYSC.GetCDN();
 			var name = asset.name.replace(/(.+\/|)(.+?)$/, '$1' + asset.checksum + '-$2');
-			var url = 'http://' + root + '/assets/' + name;
+			var url = 'https://' + root + '/assets/' + name;
 
 			SYS.DoXHR(url, {
 				dataType: 'arraybuffer',
@@ -253,7 +233,7 @@ var LibrarySysCommon = {
 			var fs_game = SYSC.Cvar_VariableString('fs_game');
 			var com_basegame = SYSC.Cvar_VariableString('com_basegame');
 			var mapname = SYSC.Cvar_VariableString('mapname');
-			var url = 'http://' + fs_cdn + '/assets/manifest.json';
+			var url = 'https://' + fs_cdn + '/assets/manifest.json';
 
 			function isInstaller(name) {
 				return SYSC.installers.some(function (installer) {
