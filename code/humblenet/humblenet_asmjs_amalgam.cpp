@@ -6530,7 +6530,12 @@ int libwebrtc_write( struct libwebrtc_data_channel* channel, const void* data, i
 		// set the dest from the src
 		data.set(data_in);
 
-		channel.send( data );
+                try {
+                    channel.send( data );
+                
+                } catch(e) {
+                    console.warn(e)
+                }
 		return $2;
 
 	}, channel, data, len );
