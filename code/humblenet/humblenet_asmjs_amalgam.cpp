@@ -6281,8 +6281,6 @@ struct libwebrtc_context* libwebrtc_create_context( lwrtc_callback_function call
 			var stack = Runtime.stackSave();
 			// disconnected //
 			libwebrtc.on_event( ctx, this.id, 0, 4, this.user_data, 0, 0);
-			Runtime.stackRestore(stack);
-			this.destroy();
 		};
 		libwebrtc.on_datachannel = function(event){
 			Module.print("datachannel");
