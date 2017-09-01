@@ -6418,10 +6418,10 @@ int libwebrtc_create_offer( struct libwebrtc_connection* connection ) {
 					.then( function() {
 						Module.__libwebrtc.on_sdp.call( connection );
 					}).catch(function(error){
-						alert( "setLocalDescription(create): " + error );
+						console.log( "setLocalDescription(create): " + error );
 					});
 			}).catch(function(error){
-				alert("createOffer: " + error);
+				console.log("createOffer: " + error);
 			});
 
 		return 1;
@@ -6446,13 +6446,13 @@ int libwebrtc_set_offer( struct libwebrtc_connection* connection, const char* sd
 							.then( function() {
 								Module.__libwebrtc.on_sdp.call( connection );
 							}).catch(function(error){
-								alert( "setLocalDescription(answer): " + error );
+								console.log( "setLocalDescription(answer): " + error );
 							});
 					}).catch(function(error){
-						alert("createAnswer: " + error);
+						console.log("createAnswer: " + error);
 				});
 			}).catch(function(error){
-				alert("setRemoteDescriptor(answer): " + error );
+				console.log("setRemoteDescriptor(answer): " + error );
 			});
 		return 1;
 	}, connection, sdp );
@@ -6472,7 +6472,7 @@ int libwebrtc_set_answer( struct libwebrtc_connection* connection, const char* s
 			.then( function() {
 				// nothing, as this is the answer to our offer
 			}).catch(function(error){
-				alert("setRemoteDescriptor(answer): " + error );
+				console.log("setRemoteDescriptor(answer): " + error );
 			});
 		return 1;
 	}, connection, sdp );
