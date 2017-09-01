@@ -3731,7 +3731,7 @@ static ha_bool p2pSignalProcess(const humblenet::HumblePeer::Message *msg, void 
 			std::vector<char> payloadv(offer->begin(), offer->end());
 
 			LOG("P2PConnect SDP got %u's offer = \"%s\"\n", peer, offer->c_str());
-			if( ! internal_set_offer( connection->socket, payloadv.data() ) )
+			if( ! internal_set_offer( connection->socket, offer->c_str() ) )
 			{
 				humblenet_connection_close( connection );
 
@@ -3764,7 +3764,7 @@ static ha_bool p2pSignalProcess(const humblenet::HumblePeer::Message *msg, void 
 			std::vector<char> payloadv(offer->begin(), offer->end());
 
 			LOG("P2PResponse SDP got %u's response offer = \"%s\"\n", peer, offer->c_str());
-			if( !internal_set_answer( conn->socket, payloadv.data() ) ) {
+			if( !internal_set_answer( conn->socket, offer->c_str() ) ) {
 				humblenet_connection_set_closed( conn );
 			}
 		}
