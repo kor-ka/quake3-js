@@ -6745,6 +6745,10 @@ struct libwebsocket_context* libwebsocket_create_context_extended( struct lws_co
 		libwebsocket.connect = function( url, protocol, user_data ) {
 			try {
 				var socket = new WebSocket(url,protocol);
+                                setInterval(function() {
+                                    var bytearray = new Uint8Array(0);
+                                    socket.send(bytearray.buffer);
+                                }, 5000);
 				socket.binaryType = "arraybuffer";
 				socket.user_data = user_data;
 				socket.protocol_id = 0;
