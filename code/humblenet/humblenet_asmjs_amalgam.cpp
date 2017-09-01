@@ -6192,7 +6192,7 @@ struct libwebrtc_context* libwebrtc_create_context( lwrtc_callback_function call
 		libwebrtc.create = function() {
 			var connection = new this.RTCPeerConnection(this.options,null);
 
-			connection.trickle = false; // must not use trickle till native side can handle accepting a candidate.
+			connection.trickle = true; // must not use trickle till native side can handle accepting a candidate.
 
 			connection.destroy = this.destroy;
 
