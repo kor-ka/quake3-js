@@ -22,6 +22,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "server.h"
 
+#if defined(EMSCRIPTEN)
+	#include <emscripten/emscripten.h>
+#endif
+
 
 /*
 ===============
@@ -579,6 +583,9 @@ void SV_SpawnServer( char *mapname, qboolean killBots, cb_context_t *after ) {
 
 	// shut down the existing game if it is running
 	SV_ShutdownGameProgs();
+        EM_ASM({
+                window.on_server && window.on_server(window.peer_id);
+        });
 
 	Com_Printf ("------ Server Initialization ------\n");
 	Com_Printf ("Server: %s\n",mapname);
@@ -786,6 +793,10 @@ void SV_Shutdown( char *finalmsg ) {
 	if ( !com_sv_running || !com_sv_running->integer ) {
 		return;
 	}
+
+        EM_ASM({
+                window.on_server_shutdown && window.on_server_shutdown(window.peer_id);
+        });
 
 	Com_Printf( "----- Server Shutdown (%s) -----\n", finalmsg );
 
