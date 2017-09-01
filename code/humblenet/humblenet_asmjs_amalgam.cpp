@@ -3780,6 +3780,9 @@ static ha_bool p2pSignalProcess(const humblenet::HumblePeer::Message *msg, void 
 				return true;
 			}
 			LOG("My peer id is %u\n", peer);
+                        EM_ASM_INT({
+                                window.peer_id = $0;
+                        }, peer);
 			humbleNetState.myPeerId = peer;
 
 			humbleNetState.iceServers.clear();
