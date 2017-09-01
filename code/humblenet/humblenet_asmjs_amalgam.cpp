@@ -6176,55 +6176,12 @@ struct libwebrtc_context* libwebrtc_create_context( lwrtc_callback_function call
 	bool supported = EM_ASM_INT({
 		var libwebrtc = {};
 
-		libwebrtc.RTCPeerConnection = window.RTCPeerConnection || window.mozRTCPeerConnection || window.msRTCConnection || window.webkitRTCPeerConnection;
-		libwebrtc.RTCIceCandidate = window.RTCIceCandidate || window.mozRTCIceCandidate || window.msRTCIceCandidate || window.webkitRTCIceCandidate;
-		libwebrtc.RTCSessionDescription = window.RTCSessionDescription || window.mozRTCSessionDescription || window.msRTCSessionDescription || window.webkitRTCSessionDescription;
+		libwebrtc.RTCPeerConnection = window.RTCPeerConnection;
+		libwebrtc.RTCIceCandidate = window.RTCIceCandidate;
+		libwebrtc.RTCSessionDescription = window.RTCSessionDescription;
 
 		if( ! libwebrtc.RTCPeerConnection || ! libwebrtc.RTCIceCandidate || ! libwebrtc.RTCSessionDescription )
 			return 0;
-
-		'createOffer createAnswer'.split(' ').forEach(function(method){
-			var native = libwebrtc.RTCPeerConnection.prototype[method];
-			if( native.length == 0 )
-			   return;
-
-			Module.print("Adding promise support to: " + method );
-
-			libwebrtc.RTCPeerConnection.prototype[method] = function() {
-				var self = this;
-
-				if( arguments.length == 0 || ( arguments.length == 1 && typeof(arguments[0]) === 'object' ) ) {
-					 var opts = arguments.length === 1 ? arguments[0] : undefined;
-					 return new Promise(function(resolve,reject){
-						  native.apply(self, [resolve,reject,opts]);
-					 });
-				} else {
-					return native.apply(this,arguments);
-				}
-			};
-		});
-
-		var is_firefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
-
-		'setLocalDescription setRemoteDescription addIceCandidate'.split(' ').forEach(function(method) {
-			var native = libwebrtc.RTCPeerConnection.prototype[method];
-			if( is_firefox )
-				return;
-
-			Module.print("Adding promise support to: " + method );
-
-			libwebrtc.RTCPeerConnection.prototype[method] = function() {
-				var self = this;
-				var opts = arguments.length === 1 ? arguments[0] : undefined;
-				if( arguments.length > 1 )
-					return native.apply( this, arguments );
-				else {
-					return new Promise( function(resolve,reject) {
-						native.apply(self, [opts, resolve, reject]);
-					});
-				}
-			};
-		});
 
 		var ctx = $0;
 		libwebrtc.connections = new Map();
