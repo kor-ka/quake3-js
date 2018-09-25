@@ -584,7 +584,18 @@ void SV_SpawnServer( char *mapname, qboolean killBots, cb_context_t *after ) {
 	// shut down the existing game if it is running
 	SV_ShutdownGameProgs();
         EM_ASM({
-                window.on_server && window.on_server(window.peer_id);
+                if(window.on_server) {
+                    function sendPeerid() {
+                        setTimeout(function() {
+                            if(window.peer_id == undefined) {
+                                sendPeerid();
+                            } else {
+                                window.on_server(window.peer_id);
+                            }
+                        },1000);
+                    }
+                    sendPeerid();
+                }
         });
 
 	Com_Printf ("------ Server Initialization ------\n");

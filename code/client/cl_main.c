@@ -29,6 +29,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #if EMSCRIPTEN
 #include "../ui/ui_shared.h"
+	#include <emscripten/emscripten.h>
 #endif
 
 #ifdef USE_MUMBLE
@@ -1341,7 +1342,6 @@ void CL_MapLoading( void ) {
 	} else {
 		// clear nextmap so the cinematic shutdown doesn't execute it
 		Cvar_Set( "nextmap", "" );
-		CL_Disconnect( qtrue );
 		Q_strncpyz( clc.servername, "localhost", sizeof(clc.servername) );
 		clc.state = CA_CHALLENGING;		// so the connect screen is drawn
 		Key_SetCatcher( 0 );
@@ -1466,7 +1466,9 @@ void CL_Disconnect( qboolean showMainMenu ) {
 	}
 
 	if ( uivm && showMainMenu ) {
-		VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_NONE );
+                EM_ASM(
+                    window.on_disconnect && window.on_disconnect()
+                );
 	}
 
 	SCR_StopCinematic ();
@@ -1772,7 +1774,7 @@ void CL_Connect_f( void ) {
 	SV_Frame( 0 );
 
 	noGameRestart = qtrue;
-	CL_Disconnect( qtrue );
+	//CL_Disconnect( qtrue );
 	Con_Close();
 
 	Q_strncpyz( clc.servername, server, sizeof(clc.servername) );
@@ -3150,6 +3152,11 @@ CL_Frame
 ==================
 */
 void CL_Frame ( int msec ) {
+    int dedicated = EM_ASM_INT({
+            if(window.dedicated) return 1;
+            return 0;
+    }, 0);
+    if(dedicated) return;
 	if ( !com_cl_running->integer ) {
 		return;
 	}
@@ -4746,6 +4753,17 @@ qboolean CL_UpdateVisiblePings_f(int source) {
 CL_ServerStatus_f
 ==================
 */
+char* LocalServerStatus(void) {
+    netadr_t *toptr;
+    NET_StringToAdr( "localhost", toptr, NA_UNSPEC  );
+    serverStatus_t *serverStatus;
+    serverStatus = CL_GetServerStatus( *toptr );
+    serverStatus->address = *toptr;
+    serverStatus->print = qfalse;
+    serverStatus->pending = qtrue;
+    NET_OutOfBandPrint( NS_CLIENT, *toptr, "getstatus" );
+    return serverStatus->string;
+}
 void CL_ServerStatus_f(void) {
 	netadr_t	to, *toptr = NULL;
 	char		*server;

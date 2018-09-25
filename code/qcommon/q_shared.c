@@ -787,7 +787,8 @@ void Q_strncpyz( char *dest, const char *src, int destsize ) {
     Com_Error( ERR_FATAL, "Q_strncpyz: NULL dest" );
   }
 	if ( !src ) {
-		Com_Error( ERR_FATAL, "Q_strncpyz: NULL src" );
+	    return;
+		//Com_Error( ERR_FATAL, "Q_strncpyz: NULL src" );
 	}
 	if ( destsize < 1 ) {
 		Com_Error(ERR_FATAL,"Q_strncpyz: destsize < 1" ); 
@@ -1315,7 +1316,7 @@ void Info_SetValueForKey( char *s, const char *key, const char *value ) {
 
 	if (strlen(newi) + strlen(s) >= MAX_INFO_STRING)
 	{
-		Com_Printf ("Info string length exceeded\n");
+		//Com_Printf ("Info string length exceeded\n");
 		return;
 	}
 

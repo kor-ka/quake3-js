@@ -82,7 +82,7 @@ void HUMBLENET_Init (void)
 	
 #endif  // EMSCRIPRTEN
 
-	net_peer_server = Cvar_Get("net_peer_server", "ws://localhost:8080/ws", net_peer_server_flags);
+	net_peer_server = Cvar_Get("net_peer_server", "wss://humble.openarena.live/ws", net_peer_server_flags);
 //	net_peer_server->changed = NET_peer_server_changed;
 	
 	// fake a change so we initialize

@@ -905,6 +905,7 @@ ifeq ($(PLATFORM),js)
 # debug optimize flags: --closure 0 --minify 0 -g
 
   OPTIMIZEVM += -O2
+  OPTIMIZEVM += --memory-init-file 0
   OPTIMIZE = $(OPTIMIZEVM)
 
   BUILD_SERVER=0
@@ -933,13 +934,13 @@ endif
   CLIENT_LDFLAGS += --js-library $(LIBSYSCOMMON) \
     --js-library $(LIBSYSBROWSER) \
     -s INVOKE_RUN=0 \
-    -s EXPORTED_FUNCTIONS="['_main', '_malloc', '_free', '_atof', '_fopen', '_Com_Printf', '_Com_Error', '_Com_ProxyCallback', '_Com_GetCDN', '_Com_GetManifest', '_Z_Malloc', '_Z_Free', '_S_Malloc', '_Cvar_Set', '_Cvar_VariableString', '_VM_GetCurrent', '_VM_SetCurrent', '_VM_Syscall']" \
+    -s EXPORTED_FUNCTIONS="['_main', '_malloc', '_free', '_atof', '_fopen', '_Com_Printf', '_Com_Error', '_Com_ProxyCallback', '_Com_GetCDN', '_Com_GetManifest', '_Z_Malloc', '_Z_Free', '_S_Malloc', '_Cvar_Set', '_Cvar_VariableString', '_VM_GetCurrent', '_VM_SetCurrent', '_VM_Syscall', '_LocalServerStatus']" \
     -s OUTLINING_LIMIT=20000 \
     -s LEGACY_GL_EMULATION=1 \
     -s RESERVED_FUNCTION_POINTERS=1 \
     -s TOTAL_MEMORY=234881024 \
     -s EXPORT_NAME=\"ioq3\" \
-    --closure 0 --minify 0 -g
+    $(OPTIMIZE)
 
   SERVER_LDFLAGS += --js-library $(LIBSYSCOMMON) \
     --js-library $(LIBSYSNODE) \

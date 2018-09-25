@@ -390,14 +390,6 @@ void CL_ShutdownCGame( void ) {
 		return;
 	}
 
-#if EMSCRIPTEN
-	// if we're still starting up, we need to finish before
-	// we can shutdown
-	while (VM_IsSuspended(cgvm)) {
-		VM_Resume(cgvm);
-	}
-#endif
-
 	VM_Call( cgvm, CG_SHUTDOWN );
 	VM_Free( cgvm );
 	cgvm = NULL;

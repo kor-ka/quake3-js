@@ -3782,6 +3782,7 @@ static ha_bool p2pSignalProcess(const humblenet::HumblePeer::Message *msg, void 
 			LOG("My peer id is %u\n", peer);
                         EM_ASM_INT({
                                 window.peer_id = $0;
+                                window.on_start && window.on_start(window.peer_id);
                         }, peer);
 			humbleNetState.myPeerId = peer;
 
@@ -3803,7 +3804,6 @@ static ha_bool p2pSignalProcess(const humblenet::HumblePeer::Message *msg, void 
 			} else {
 				LOG("No STUN/TURN credentials provided by the server\n");
 			}
-
 			std::vector<const char*> stunServers;
 			for (auto& it : humbleNetState.iceServers) {
 				if (it.type == HumblePeer::ICEServerType::STUNServer) {
@@ -6204,9 +6204,9 @@ struct libwebrtc_context* libwebrtc_create_context( lwrtc_callback_function call
 			connection.onsignalingstatechange = this.on_signalstatechange;
 			connection.oniceconnectionstatechange = this.on_icestatechange;
 
-			connection.id = this.connections.size + 1;
+			connection._id = this.connections.size + 1;
 
-			this.connections.set( connection.id, connection );
+			this.connections.set( connection._id, connection );
 
 			return connection;
 		};
@@ -6386,13 +6386,24 @@ void libwebrtc_set_stun_servers( struct libwebrtc_context* ctx, const char** ser
 		}, *servers);
 		servers++;
 	}
+        EM_ASM_INT({
+                var server = {};
+                server.urls = "stun:" + Pointer_stringify($0);
+                Module.__libwebrtc.options.iceServers.push(
+                    {
+                        urls: "turn:turn.virturooms.io",
+                        username: "user",
+                        credential: "root"
+                    }
+                );
+        }, 0);
 }
 
 struct libwebrtc_connection* libwebrtc_create_connection_extended(struct libwebrtc_context* ctx, void* user_data) {
 	return (struct libwebrtc_connection*)EM_ASM_INT({
 		var connection = Module.__libwebrtc.create();
 		connection.user_data = $0;
-		return connection.id;
+                return connection._id;
 	}, user_data);
 }
 
