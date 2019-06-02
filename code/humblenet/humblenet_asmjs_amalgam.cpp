@@ -6505,8 +6505,12 @@ int libwebrtc_add_ice_candidate( struct libwebrtc_connection* connection, const 
 		   // FF workaround
 		   || connection.iceConnectionState == 'new') {
 			Module.print( "AddIce: " + options.candidate );
+			try {
 			connection.addIceCandidate( new Module.__libwebrtc.RTCIceCandidate( options ) );
-		} else
+                        } catch(e) {
+                           window.console.warn(e);
+                        }
+                    } else
 			Module.print( "Not negotiating (" + connection.iceConnectionState + "), ignored candidate: " + options.candidate );
 
 	}, connection, candidate );

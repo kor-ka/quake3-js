@@ -1939,7 +1939,7 @@ static void CG_PlayerSprites( centity_t *cent ) {
 	int		team;
 
 	if ( cent->currentState.eFlags & EF_CONNECTION ) {
-		CG_PlayerFloatSprite( cent, cgs.media.connectionShader );
+		//CG_PlayerFloatSprite( cent, cgs.media.connectionShader );
 		return;
 	}
 

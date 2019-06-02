@@ -633,16 +633,7 @@ UI_PlayerFloatSprite
 ===============
 */
 static void UI_PlayerFloatSprite( playerInfo_t *pi, vec3_t origin, qhandle_t shader ) {
-	refEntity_t		ent;
-
-	memset( &ent, 0, sizeof( ent ) );
-	VectorCopy( origin, ent.origin );
-	ent.origin[2] += 48;
-	ent.reType = RT_SPRITE;
-	ent.customShader = shader;
-	ent.radius = 10;
-	ent.renderfx = 0;
-	trap_R_AddRefEntityToScene( &ent );
+    return;
 }
 
 

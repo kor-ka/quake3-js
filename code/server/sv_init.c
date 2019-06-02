@@ -274,12 +274,7 @@ static void SV_Startup( void ) {
 	SV_BoundMaxClients( 1 );
 
 	svs.clients = Z_Malloc (sizeof(client_t) * sv_maxclients->integer );
-	if ( com_dedicated->integer ) {
-		svs.numSnapshotEntities = sv_maxclients->integer * PACKET_BACKUP * MAX_SNAPSHOT_ENTITIES;
-	} else {
-		// we don't need nearly as many when playing locally
 		svs.numSnapshotEntities = sv_maxclients->integer * 4 * MAX_SNAPSHOT_ENTITIES;
-	}
 	svs.initialized = qtrue;
 
 	// Don't respect sv_killserver unless a server is actually running
@@ -352,12 +347,8 @@ void SV_ChangeMaxClients( void ) {
 	Hunk_FreeTempMemory( oldClients );
 	
 	// allocate new snapshot entities
-	if ( com_dedicated->integer ) {
-		svs.numSnapshotEntities = sv_maxclients->integer * PACKET_BACKUP * MAX_SNAPSHOT_ENTITIES;
-	} else {
 		// we don't need nearly as many when playing locally
 		svs.numSnapshotEntities = sv_maxclients->integer * 4 * MAX_SNAPSHOT_ENTITIES;
-	}
 }
 
 /*
@@ -560,14 +551,6 @@ static void SV_SpawnServer_after_FS_Restart( cb_context_t *context, int status )
 	SV_Heartbeat_f();
 
 	Hunk_SetMark();
-
-#ifndef DEDICATED
-	if ( com_dedicated->integer ) {
-		// restart renderer in order to show console for dedicated servers
-		// launched through the regular binary
-		CL_StartHunkUsers( qtrue );
-	}
-#endif
 
 	Com_Printf ("-----------------------------------\n");
 

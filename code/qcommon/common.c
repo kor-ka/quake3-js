@@ -1591,16 +1591,8 @@ void Com_InitHunkMemory( void ) {
 
 	// allocate the stack based hunk allocator
 	cv = Cvar_Get( "com_hunkMegs", DEF_COMHUNKMEGS_S, CVAR_LATCH | CVAR_ARCHIVE );
-
-	// if we are not dedicated min allocation is 56, otherwise min is 1
-	if (com_dedicated && com_dedicated->integer) {
-		nMinAlloc = MIN_DEDICATED_COMHUNKMEGS;
-		pMsg = "Minimum com_hunkMegs for a dedicated server is %i, allocating %i megs.\n";
-	}
-	else {
 		nMinAlloc = MIN_COMHUNKMEGS;
 		pMsg = "Minimum com_hunkMegs is %i, allocating %i megs.\n";
-	}
 
 	if ( cv->integer < nMinAlloc ) {
 		s_hunkTotal = 1024 * 1024 * nMinAlloc;
@@ -3192,10 +3184,6 @@ void Com_Frame( void ) {
 	// Figure out how much time we have
 	if(!com_timedemo->integer)
 	{
-		if(com_dedicated->integer)
-			minMsec = SV_FrameMsec();
-		else
-		{
 			if(com_minimized->integer && com_maxfpsMinimized->integer > 0)
 				minMsec = 1000 / com_maxfpsMinimized->integer;
 			else if(com_unfocused->integer && com_maxfpsUnfocused->integer > 0)
@@ -3214,7 +3202,6 @@ void Com_Frame( void ) {
 			// Adjust minMsec if previous frame took too long to render so
 			// that framerate is stable at the requested value.
 			minMsec -= bias;
-		}
 	}
 	else
 		minMsec = 1;
