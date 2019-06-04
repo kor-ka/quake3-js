@@ -126,7 +126,7 @@ var LibraryVM = {
 			return labels;
 		},
 		CompileModule: function (name, instructionCount, codeBase, dataBase) {
-			var fs_game = Pointer_stringify(_Cvar_VariableString(allocate(intArrayFromString('fs_game'), 'i8', ALLOC_STACK)));
+			var fs_game = UTF8ToString(_Cvar_VariableString(allocate(intArrayFromString('fs_game'), 'i8', ALLOC_STACK)));
 
 			var state = {
 				name: name,
@@ -627,7 +627,7 @@ var LibraryVM = {
 			// it fails to load the default model, the game will exit
 			if (fs_game === 'cpma' && name === 'cgame') {
 				EmitStatement('\tif (callnum === 10 /* trap_FS_FOpenFile */ || callnum === 34 /* trap_S_RegisterSound */ || callnum === 37 /* trap_R_RegisterModel */ || callnum === 38 /* trap_R_RegisterSkin */) {');
-				EmitStatement('\t\tvar modelName = Pointer_stringify(' + state.dataBase + ' + {{{ makeGetValue("image", "stackOnEntry + 8", "i32") }}});');
+				EmitStatement('\t\tvar modelName = UTF8ToString(' + state.dataBase + ' + {{{ makeGetValue("image", "stackOnEntry + 8", "i32") }}});');
 				EmitStatement('\t\tif (modelName.indexOf("/mynx") !== -1) {');
 				EmitStatement('\t\t\tmodelName = modelName.replace("/mynx", "/sarge");');
 				EmitStatement('\t\t\tSTACKTOP -= modelName.length+1;');
@@ -952,7 +952,7 @@ var LibraryVM = {
 	VM_Compile__deps: ['$SYSC', '$VM', 'VM_Destroy'],
 	VM_Compile: function (vmp, headerp) {
 		var current = _VM_GetCurrent();
-		var name = Pointer_stringify(vmp + VM.vm_t.name);
+		var name = UTF8ToString(vmp + VM.vm_t.name);
 		var dataBase = {{{ makeGetValue('vmp', 'VM.vm_t.dataBase', 'i8*') }}};
 		var codeOffset = {{{ makeGetValue('headerp', 'VM.vmHeader_t.codeOffset', 'i32') }}};
 		var instructionCount = {{{ makeGetValue('headerp', 'VM.vmHeader_t.instructionCount', 'i32') }}};

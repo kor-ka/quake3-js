@@ -6189,8 +6189,9 @@ struct libwebrtc_context* libwebrtc_create_context( lwrtc_callback_function call
 		var ctx = $0;
 		libwebrtc.connections = new Map();
 		libwebrtc.channels = new Map();
-		libwebrtc.on_event = Module.cwrap('libwebrtc_helper', 'iiiiiiii');
+		libwebrtc.on_event = Module.cwrap('libwebrtc_helper', 'number', ['number', 'number', 'number', 'number', 'number', 'number', 'number']);
 		libwebrtc.options = {};
+		window.libwebrtc = libwebrtc;
 
 		libwebrtc.create = function() {
 			var connection = new this.RTCPeerConnection(this.options,null);
@@ -6239,10 +6240,10 @@ struct libwebrtc_context* libwebrtc_create_context( lwrtc_callback_function call
 				sdp += 'a=candidate:0 1 UDP 2128609534 0.0.0.0 0 typ host\n';
 				//sdp += 'a=candidate:0 2 UDP 2128609534 135.27.116.245 62789 typ host\n';
 			}
-			var stack = Runtime.stackSave();
+			var stack = Module.stackSave();
 			// local description //
 			libwebrtc.on_event( ctx, this.id, 0, 1, this.user_data, allocate(intArrayFromString(sdp), 'i8', ALLOC_STACK), sdp.length);
-			Runtime.stackRestore(stack);
+			Module.stackRestore(stack);
 		};
 		libwebrtc.on_candidate = function(event){
 			if( !event )
@@ -6263,10 +6264,10 @@ struct libwebrtc_context* libwebrtc_create_context( lwrtc_callback_function call
 			Module.print("ice candidate " + event.candidate.candidate + " -- " + this.iceGatheringState);
 
 			if( this.trickle ) {
-				var stack = Runtime.stackSave();
+				var stack = Module.stackSave();
 				// ice_candidate //
 				libwebrtc.on_event( ctx, this.id, 0, 2, this.user_data, allocate(intArrayFromString(event.candidate.candidate), 'i8', ALLOC_STACK), event.candidate.candidate.length);
-				Runtime.stackRestore(stack);
+				Module.stackRestore(stack);
 			}
 		};
 		libwebrtc.on_signalstatechange = function(event){
@@ -6281,7 +6282,7 @@ struct libwebrtc_context* libwebrtc_create_context( lwrtc_callback_function call
 				libwebrtc.on_event( ctx, this.id, 0, 3, this.user_data, 0, 0);
 		};
 		libwebrtc.on_disconnected = function(event){
-			var stack = Runtime.stackSave();
+			var stack = Module.stackSave();
 			// disconnected //
 			libwebrtc.on_event( ctx, this.id, 0, 4, this.user_data, 0, 0);
 		};
@@ -6305,20 +6306,20 @@ struct libwebrtc_context* libwebrtc_create_context( lwrtc_callback_function call
 		};
 		libwebrtc.on_channel_accept = function(event){
 			Module.print("accept");
-			var stack = Runtime.stackSave();
+			var stack = Module.stackSave();
 			// channel accepted //
 			libwebrtc.on_event(ctx, this.parent.id, this._id, 5, this.user_data, allocate(intArrayFromString(this.label), 'i8', ALLOC_STACK), this.label.length);
-			Runtime.stackRestore(stack);
+			Module.stackRestore(stack);
 		};
 		libwebrtc.on_channel_connected = function(event){
 			Module.print("connect");
-			var stack = Runtime.stackSave();
+			var stack = Module.stackSave();
 			// channel connected //
 			libwebrtc.on_event(ctx, this.parent.id, this._id, 6, this.user_data, allocate(intArrayFromString(this.label), 'i8', ALLOC_STACK), this.label.length);
-			Runtime.stackRestore(stack);
+			Module.stackRestore(stack);
 		};
 		libwebrtc.on_channel_message = function(event){
-			var stack = Runtime.stackSave();
+			var stack = Module.stackSave();
 			var len = event.data.byteLength;
 			var ptr = allocate( len, 'i8', ALLOC_STACK);
 
@@ -6332,13 +6333,13 @@ struct libwebrtc_context* libwebrtc_create_context( lwrtc_callback_function call
 
 			// channel data //
 			libwebrtc.on_event( ctx, this.parent.id, this._id, 7, this.user_data, ptr, len);
-			Runtime.stackRestore(stack);
+			Module.stackRestore(stack);
 		};
 		libwebrtc.on_channel_closed = function(event){
-			var stack = Runtime.stackSave();
+			var stack = Module.stackSave();
 			// close channel //
 			libwebrtc.on_event(ctx, this.parent.id, this._id, 7, this.user_data, 0, 0);
-			Runtime.stackRestore(stack);
+			Module.stackRestore(stack);
 		};
 		libwebrtc.destroy = function() {
 			libwebrtc.connections.set( this.id, undefined );
@@ -6381,14 +6382,14 @@ void libwebrtc_set_stun_servers( struct libwebrtc_context* ctx, const char** ser
 	for( int i = 0; i < count; ++i ) {
 		EM_ASM_INT({
 			var server = {};
-			server.urls = "stun:" + Pointer_stringify($0);
+			server.urls = "stun:" + UTF8ToString($0);
 			Module.__libwebrtc.options.iceServers.push( server );
 		}, *servers);
 		servers++;
 	}
         EM_ASM_INT({
                 var server = {};
-                server.urls = "stun:" + Pointer_stringify($0);
+                server.urls = "stun:" + UTF8ToString($0);
                 Module.__libwebrtc.options.iceServers.push(
                     {
                         urls: "turn:turn.virturooms.io",
@@ -6450,7 +6451,7 @@ int libwebrtc_set_offer( struct libwebrtc_connection* connection, const char* sd
 
 		var offer = {};
 		offer.type = 'offer';
-		offer.sdp = Pointer_stringify( $1 );
+		offer.sdp = UTF8ToString( $1 );
 
 		connection.setRemoteDescription( new Module.__libwebrtc.RTCSessionDescription( offer ) )
 			.then(function() {
@@ -6480,7 +6481,7 @@ int libwebrtc_set_answer( struct libwebrtc_connection* connection, const char* s
 
 		var offer = {};
 		offer.type = 'answer';
-		offer.sdp = Pointer_stringify( $1 );
+		offer.sdp = UTF8ToString( $1 );
 
 		connection.setRemoteDescription( new Module.__libwebrtc.RTCSessionDescription( offer ) )
 			.then( function() {
@@ -6499,7 +6500,7 @@ int libwebrtc_add_ice_candidate( struct libwebrtc_connection* connection, const 
 			return 0;
 
 		var options = {};
-		options.candidate = Pointer_stringify($1);
+		options.candidate = UTF8ToString($1);
 
 		if( connection.iceConnectionState == 'checking' || connection.iceConnectionState == 'connected'
 		   // FF workaround
@@ -6528,7 +6529,7 @@ struct libwebrtc_data_channel* libwebrtc_create_channel( struct libwebrtc_connec
 			channel = connection.default_channel;
 			connection.default_channel = 0;
 		}else
-			channel = Module.__libwebrtc.create_channel( connection, Pointer_stringify($1) );
+			channel = Module.__libwebrtc.create_channel( connection, UTF8ToString($1) );
 
 		return channel._id;
 
@@ -6759,7 +6760,7 @@ struct libwebsocket_context* libwebsocket_create_context_extended( struct lws_co
 		var ctx = $0;
 
 		libwebsocket.sockets = new Map();
-		libwebsocket.on_event = Module.cwrap('libwebsocket_helper', 'iiiiiiii');
+		libwebsocket.on_event = Module.cwrap('libwebsocket_helper', 'number', ['number', 'number', 'number', 'number', 'number', 'number', 'number']);
 		libwebsocket.connect = function( url, protocol, user_data ) {
 			try {
 				var socket = new WebSocket(url,protocol);
@@ -6788,15 +6789,16 @@ struct libwebsocket_context* libwebsocket_create_context_extended( struct lws_co
 			}
 		};
 		libwebsocket.on_connect = function() {
-			var stack = Runtime.stackSave();
+			var stack = Module.stackSave();
 			// filter protocol //
+			console.log( 0, ctx, this.id, 9, this.user_data, allocate(intArrayFromString(this.protocol), 'i8', ALLOC_STACK), this.protocol.length );
 			libwebsocket.on_event( 0, ctx, this.id, 9, this.user_data, allocate(intArrayFromString(this.protocol), 'i8', ALLOC_STACK), this.protocol.length );
 			// client established
 			libwebsocket.on_event( this.protocol_id, ctx, this.id, 3, this.user_data, 0, 0 );
-			Runtime.stackRestore(stack);
+			Module.stackRestore(stack);
 		};
 		libwebsocket.on_message = function(event) {
-			var stack = Runtime.stackSave();
+			var stack = Module.stackSave();
 			var len = event.data.byteLength;
 			var ptr = allocate( len, 'i8', ALLOC_STACK);
 
@@ -6809,7 +6811,7 @@ struct libwebsocket_context* libwebsocket_create_context_extended( struct lws_co
 
 			// client receive //
 			libwebsocket.on_event( this.protocol_id, ctx, this.id, 6, this.user_data, ptr, len );
-			Runtime.stackRestore(stack);
+			Module.stackRestore(stack);
 		};
 		libwebsocket.on_close = function() {
 			// closed //
@@ -6839,7 +6841,7 @@ void libwebsocket_context_destroy(struct libwebsocket_context* ctx ) {
 struct libwebsocket* libwebsocket_client_connect_extended(struct libwebsocket_context* ctx , const char* url, const char* protocol, void* user_data ) {
 
 	struct libwebsocket* s =  (struct libwebsocket*)EM_ASM_INT({
-		var socket = Module.__libwebsocket.connect( Pointer_stringify($0), Pointer_stringify($1), $2);
+		var socket = Module.__libwebsocket.connect( UTF8ToString($0), UTF8ToString($1), $2);
 		if( ! socket )
 			return 0;
 

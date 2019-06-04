@@ -904,7 +904,6 @@ ifeq ($(PLATFORM),js)
 
 # debug optimize flags: --closure 0 --minify 0 -g
 
-  OPTIMIZEVM += -O2
   OPTIMIZEVM += --memory-init-file 0
   OPTIMIZE = $(OPTIMIZEVM)
 
@@ -922,10 +921,10 @@ ifeq ($(PLATFORM),js)
   USE_RENDERER_DLOPEN=0
   USE_LOCAL_HEADERS=0
 
-  LIBSYSCOMMON=$(SYSDIR)/sys_common.js
-  LIBSYSBROWSER=$(SYSDIR)/sys_browser.js
-  LIBSYSNODE=$(SYSDIR)/sys_node.js
-  LIBVMJS=$(CMDIR)/vm_js.js
+  LIBSYSCOMMON=$(SYSDIR)/sys_common.wasm
+  LIBSYSBROWSER=$(SYSDIR)/sys_browser.wasm
+  LIBSYSNODE=$(SYSDIR)/sys_node.wasm
+  LIBVMJS=$(CMDIR)/vm_js.wasm
 
 ifeq ($(USE_HUMBLENET),1)
   BASE_CFLAGS += -DUSE_HUMBLENET
@@ -935,18 +934,19 @@ endif
     --js-library $(LIBSYSBROWSER) \
     -s INVOKE_RUN=0 \
     -s EXPORTED_FUNCTIONS="['_main', '_malloc', '_free', '_atof', '_fopen', '_Com_Printf', '_Com_Error', '_Com_ProxyCallback', '_Com_GetCDN', '_Com_GetManifest', '_Z_Malloc', '_Z_Free', '_S_Malloc', '_Cvar_Set', '_Cvar_VariableString', '_VM_GetCurrent', '_VM_SetCurrent', '_VM_Syscall', '_LocalServerStatus']" \
-    -s OUTLINING_LIMIT=20000 \
+    -s EXTRA_EXPORTED_RUNTIME_METHODS='["ccall", "cwrap", "stackSave","stackRestore", "print", "onRuntimeInitialized"]' \
+    -s ASSERTIONS=0 \
     -s LEGACY_GL_EMULATION=1 \
     -s RESERVED_FUNCTION_POINTERS=1 \
     -s TOTAL_MEMORY=234881024 \
     -s EXPORT_NAME=\"ioq3\" \
+    -s ERROR_ON_UNDEFINED_SYMBOLS=0 \
     $(OPTIMIZE)
 
   SERVER_LDFLAGS += --js-library $(LIBSYSCOMMON) \
     --js-library $(LIBSYSNODE) \
     -s INVOKE_RUN=1 \
     -s EXPORTED_FUNCTIONS="['_main', '_malloc', '_free', '_atof', '_fopen', '_Com_Printf', '_Com_Error', '_Com_ProxyCallback', '_Com_GetCDN', '_Com_GetManifest', '_Z_Malloc', '_Z_Free', '_S_Malloc', '_Cvar_Set', '_Cvar_VariableString', '_VM_GetCurrent', '_VM_SetCurrent', '_VM_Syscall']" \
-    -s OUTLINING_LIMIT=20000 \
     -s LEGACY_GL_EMULATION=1 \
     -s RESERVED_FUNCTION_POINTERS=1 \
     -s TOTAL_MEMORY=234881024 \
@@ -963,7 +963,6 @@ endif
   SHLIBLDFLAGS=$(LDFLAGS) \
     -s INVOKE_RUN=0 \
     -s EXPORTED_FUNCTIONS="['_vmMain', '_dllEntry']" \
-    -s DLOPEN_SUPPORT=1 \
     -s SIDE_MODULE=1 \
     $(OPTIMIZE)
 
@@ -973,7 +972,6 @@ else # ifeq js
 # SETUP AND BUILD -- GENERIC
 #############################################################################
   BASE_CFLAGS=
-  OPTIMIZE = -O3
 
   SHLIBEXT=so
   SHLIBCFLAGS=-fPIC

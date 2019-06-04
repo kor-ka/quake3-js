@@ -181,16 +181,16 @@ var LibrarySys = {
 		return (time[0] * 1000 + parseInt(time[1] / 1000000, 10)) - SYS.timeBase;
 	},
 	Sys_GetCurrentUser: function () {
-		var stack = Runtime.stackSave();
+		var stack = Module.stackSave();
 		var ret = allocate(intArrayFromString('player'), 'i8', ALLOC_STACK);
-		Runtime.stackRestore(stack);
+		Module.stackRestore(stack);
 		return ret;
 	},
 	Sys_Dialog: function (type, message, title) {
 		SYSC.Error('SYS_Dialog not implemented');
 	},
 	Sys_ErrorDialog: function (error) {
-		error = Pointer_stringify(error);
+		error = UTF8ToString(error);
 		console.error(error);
 		process.exit();
 	}

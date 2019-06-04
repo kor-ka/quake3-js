@@ -126,7 +126,7 @@ var LibrarySysCommon = {
 		    return SYSC.Cvar_Set(name,val);
 		},
 		CRC32File: function (path) {
-			var stack = Runtime.stackSave();
+			var stack = Module.stackSave();
 			var chunkSize = 1024*1024;
 			var bufp = allocate(chunkSize, 'i8', ALLOC_STACK);
 			var crc = CRC32.Start();
@@ -145,13 +145,13 @@ var LibrarySysCommon = {
 				} while (n);
 				FS.close(stream);
 			} catch (e) {
-				Runtime.stackRestore(stack);
+				Module.stackRestore(stack);
 				return null;
 			}
 
 			SYSC.Print('generated crc32 for ' + path + ' in ' + ((Date.now() - start) / 1000).toFixed(2) + ' seconds');
 
-			Runtime.stackRestore(stack);
+			Module.stackRestore(stack);
 			return CRC32.Finish(crc);
 		},
 		GetCDN: function () {
@@ -448,14 +448,14 @@ var LibrarySysCommon = {
 	},
 	Sys_Basename__deps: ['$PATH'],
 	Sys_Basename: function (path) {
-		path = Pointer_stringify(path);
+		path = UTF8ToString(path);
 		path = PATH.basename(path);
 		var basename = allocate(intArrayFromString(path), 'i8', ALLOC_STACK);
 		return basename;
 	},
 	Sys_Dirname__deps: ['$PATH'],
 	Sys_Dirname: function (path) {
-		path = Pointer_stringify(path);
+		path = UTF8ToString(path);
 		path = PATH.dirname(path);
 		var dirname = allocate(intArrayFromString(path), 'i8', ALLOC_STACK);
 		return dirname;
@@ -465,8 +465,8 @@ var LibrarySysCommon = {
 	},
 	Sys_ListFiles__deps: ['$PATH'],
 	Sys_ListFiles: function (directory, ext, filter, numfiles, dironly) {
-		directory = Pointer_stringify(directory);
-		ext = Pointer_stringify(ext);
+		directory = UTF8ToString(directory);
+		ext = UTF8ToString(ext);
 		if (ext === '/') {
 			ext = null;
 			dironly = true;
@@ -538,7 +538,7 @@ var LibrarySysCommon = {
 		return Module['_fopen'](ospath, mode);
 	},
 	Sys_Mkdir: function (directory) {
-		directory = Pointer_stringify(directory);
+		directory = UTF8ToString(directory);
 		try {
 			FS.mkdir(directory, 0777);
 		} catch (e) {
@@ -556,8 +556,8 @@ var LibrarySysCommon = {
 	Sys_Sleep: function () {
 	},
 	Sys_SetEnv: function (name, value) {
-		name = Pointer_stringify(name);
-		value = Pointer_stringify(value);
+		name = UTF8ToString(name);
+		value = UTF8ToString(value);
 	},
 	Sys_PID: function () {
 		return 0;
