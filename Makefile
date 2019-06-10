@@ -3,229 +3,41 @@
 #
 # GNU Make required
 #
-
-COMPILE_PLATFORM=$(shell uname|sed -e s/_.*//|tr '[:upper:]' '[:lower:]'|sed -e 's/\//_/g')
-
-COMPILE_ARCH=$(shell uname -m | sed -e s/i.86/x86/)
-
-ifndef EMSCRIPTEN
-EMSCRIPTEN=$$HOME/projects/emscripten
-endif
-
-ifeq ($(COMPILE_PLATFORM),sunos)
-  # Solaris uname and GNU uname differ
-  COMPILE_ARCH=$(shell uname -p | sed -e s/i.86/x86/)
-endif
-ifeq ($(COMPILE_PLATFORM),darwin)
-  # Apple does some things a little differently...
-  COMPILE_ARCH=$(shell uname -p | sed -e s/i.86/x86/)
-endif
-
-ifndef BUILD_STANDALONE
-  BUILD_STANDALONE =
-endif
-ifndef BUILD_CLIENT
-  BUILD_CLIENT     =
-endif
-ifndef BUILD_SERVER
-  BUILD_SERVER     =
-endif
-ifndef BUILD_GAME_SO
-  BUILD_GAME_SO    =
-endif
-ifndef BUILD_GAME_QVM
-  BUILD_GAME_QVM   =
-endif
-ifndef BUILD_BASEGAME
-  BUILD_BASEGAME =
-endif
-ifndef BUILD_MISSIONPACK
-  BUILD_MISSIONPACK=
-endif
-ifndef BUILD_RENDERER_OPENGL2
-  BUILD_RENDERER_OPENGL2=
-endif
-
-#############################################################################
-#
-# If you require a different configuration from the defaults below, create a
-# new file named "Makefile.local" in the same directory as this file and define
-# your parameters there. This allows you to change configuration without
-# causing problems with keeping up to date with the repository.
-#
-#############################################################################
--include Makefile.local
-
-ifndef PLATFORM
-PLATFORM=$(COMPILE_PLATFORM)
-endif
+PLATFORM=js
 export PLATFORM
-
-ifeq ($(COMPILE_ARCH),i86pc)
-  COMPILE_ARCH=x86
-endif
-
-ifeq ($(COMPILE_ARCH),amd64)
-  COMPILE_ARCH=x86_64
-endif
-ifeq ($(COMPILE_ARCH),x64)
-  COMPILE_ARCH=x86_64
-endif
-
-ifeq ($(COMPILE_ARCH),powerpc)
-  COMPILE_ARCH=ppc
-endif
-ifeq ($(COMPILE_ARCH),powerpc64)
-  COMPILE_ARCH=ppc64
-endif
-
-ifeq ($(COMPILE_ARCH),axp)
-  COMPILE_ARCH=alpha
-endif
-
-ifndef ARCH
-ARCH=$(COMPILE_ARCH)
-endif
-export ARCH
-
-ifneq ($(PLATFORM),$(COMPILE_PLATFORM))
-  CROSS_COMPILING=1
-else
-  CROSS_COMPILING=0
-
-  ifneq ($(ARCH),$(COMPILE_ARCH))
-    CROSS_COMPILING=1
-  endif
-endif
+CROSS_COMPILING=1
 export CROSS_COMPILING
-
-ifndef VERSION
-VERSION=1.36
-endif
-
-ifndef CLIENTBIN
+VERSION=1.37
 CLIENTBIN=ioquake3
-endif
-
-ifndef SERVERBIN
 SERVERBIN=ioq3ded
-endif
-
-ifndef BASEGAME
 BASEGAME=baseq3
-endif
-
-ifndef BASEGAME_CFLAGS
 BASEGAME_CFLAGS=
-endif
-
-ifndef MISSIONPACK
 MISSIONPACK=missionpack
-endif
-
-ifndef MISSIONPACK_CFLAGS
 MISSIONPACK_CFLAGS=-DMISSIONPACK
-endif
-
-ifndef COPYDIR
 COPYDIR="/usr/local/games/quake3"
-endif
-
-ifndef COPYBINDIR
 COPYBINDIR=$(COPYDIR)
-endif
-
-ifndef MOUNT_DIR
 MOUNT_DIR=code
-endif
-
-ifndef BUILD_DIR
 BUILD_DIR=build
-endif
-
-ifndef TEMPDIR
 TEMPDIR=/tmp
-endif
-
-ifndef GENERATE_DEPENDENCIES
 GENERATE_DEPENDENCIES=1
-endif
-
-ifndef USE_OPENAL
 USE_OPENAL=1
-endif
-
-ifndef USE_OPENAL_DLOPEN
 USE_OPENAL_DLOPEN=1
-endif
-
-ifndef USE_CURL
 USE_CURL=1
-endif
-
-ifndef USE_CURL_DLOPEN
-  ifeq ($(PLATFORM),mingw32)
-    USE_CURL_DLOPEN=0
-  else
-    USE_CURL_DLOPEN=1
-  endif
-endif
-
-ifndef USE_CODEC_VORBIS
+USE_CURL_DLOPEN=1
 USE_CODEC_VORBIS=0
-endif
-
-ifndef USE_CODEC_OPUS
 USE_CODEC_OPUS=1
-endif
-
-ifndef USE_MUMBLE
 USE_MUMBLE=1
-endif
-
-ifndef USE_VOIP
 USE_VOIP=1
-endif
-
-ifndef USE_FREETYPE
 USE_FREETYPE=0
-endif
-
-ifndef USE_INTERNAL_SPEEX
 USE_INTERNAL_SPEEX=1
-endif
-
-ifndef USE_INTERNAL_OGG
 USE_INTERNAL_OGG=1
-endif
-
-ifndef USE_INTERNAL_OPUS
 USE_INTERNAL_OPUS=1
-endif
-
-ifndef USE_INTERNAL_ZLIB
 USE_INTERNAL_ZLIB=1
-endif
-
-ifndef USE_INTERNAL_JPEG
 USE_INTERNAL_JPEG=1
-endif
-
-ifndef USE_LOCAL_HEADERS
 USE_LOCAL_HEADERS=1
-endif
-
-ifndef USE_RENDERER_DLOPEN
 USE_RENDERER_DLOPEN=1
-endif
-
-ifndef USE_HUMBLENET
 USE_HUMBLENET=1
-endif
-
-ifndef DEBUG_CFLAGS
 DEBUG_CFLAGS=-g -O0
-endif
 
 #############################################################################
 
@@ -265,42 +77,6 @@ LIBSDIR=$(MOUNT_DIR)/libs
 
 bin_path=$(shell which $(1) 2> /dev/null)
 
-# We won't need this if we only build the server
-ifneq ($(BUILD_CLIENT),0)
-  # set PKG_CONFIG_PATH to influence this, e.g.
-  # PKG_CONFIG_PATH=/opt/cross/i386-mingw32msvc/lib/pkgconfig
-  ifneq ($(call bin_path, pkg-config),)
-    CURL_CFLAGS=$(shell pkg-config --silence-errors --cflags libcurl)
-    CURL_LIBS=$(shell pkg-config --silence-errors --libs libcurl)
-    OPENAL_CFLAGS=$(shell pkg-config --silence-errors --cflags openal)
-    OPENAL_LIBS=$(shell pkg-config --silence-errors --libs openal)
-    SDL_CFLAGS=$(shell pkg-config --silence-errors --cflags sdl|sed 's/-Dmain=SDL_main//')
-    SDL_LIBS=$(shell pkg-config --silence-errors --libs sdl)
-    FREETYPE_CFLAGS=$(shell pkg-config --silence-errors --cflags freetype2)
-  endif
-  # Use sdl-config if all else fails
-  ifeq ($(SDL_CFLAGS),)
-    ifneq ($(call bin_path, sdl-config),)
-      SDL_CFLAGS=$(shell sdl-config --cflags)
-      SDL_LIBS=$(shell sdl-config --libs)
-    endif
-  endif
-endif
-
-# Add git version info
-USE_GIT=
-ifeq ($(wildcard .git),.git)
-  GIT_REV=$(shell git show -s --pretty=format:%h-%ad --date=short)
-  ifneq ($(GIT_REV),)
-    VERSION:=$(VERSION)_GIT_$(GIT_REV)
-#    USE_GIT=1
-  endif
-endif
-
-
-#############################################################################
-# SETUP AND BUILD -- LINUX
-#############################################################################
 
 ## Defaults
 LIB=lib
@@ -308,588 +84,6 @@ LIB=lib
 INSTALL=install
 MKDIR=mkdir
 
-ifneq (,$(findstring "$(PLATFORM)", "linux" "gnu_kfreebsd" "kfreebsd-gnu"))
-
-  ifeq ($(ARCH),x86_64)
-    LIB=lib64
-  else
-  ifeq ($(ARCH),ppc64)
-    LIB=lib64
-  else
-  ifeq ($(ARCH),s390x)
-    LIB=lib64
-  endif
-  endif
-  endif
-
-  BASE_CFLAGS = -Wall -fno-strict-aliasing -Wimplicit -Wstrict-prototypes \
-    -pipe -DUSE_ICON
-  CLIENT_CFLAGS += $(SDL_CFLAGS)
-
-  OPTIMIZEVM = -O3 -funroll-loops -fomit-frame-pointer
-  OPTIMIZE = $(OPTIMIZEVM) -ffast-math
-
-  ifeq ($(ARCH),x86_64)
-    OPTIMIZEVM = -O3 -fomit-frame-pointer -funroll-loops \
-      -falign-loops=2 -falign-jumps=2 -falign-functions=2 \
-      -fstrength-reduce
-    OPTIMIZE = $(OPTIMIZEVM) -ffast-math
-    HAVE_VM_COMPILED = true
-  else
-  ifeq ($(ARCH),x86)
-    OPTIMIZEVM = -O3 -march=i586 -fomit-frame-pointer \
-      -funroll-loops -falign-loops=2 -falign-jumps=2 \
-      -falign-functions=2 -fstrength-reduce
-    OPTIMIZE = $(OPTIMIZEVM) -ffast-math
-    HAVE_VM_COMPILED=true
-  else
-  ifeq ($(ARCH),ppc)
-    BASE_CFLAGS += -maltivec
-    HAVE_VM_COMPILED=true
-  endif
-  ifeq ($(ARCH),ppc64)
-    BASE_CFLAGS += -maltivec
-    HAVE_VM_COMPILED=true
-  endif
-  ifeq ($(ARCH),sparc)
-    OPTIMIZE += -mtune=ultrasparc3 -mv8plus
-    OPTIMIZEVM += -mtune=ultrasparc3 -mv8plus
-    HAVE_VM_COMPILED=true
-  endif
-  ifeq ($(ARCH),alpha)
-    # According to http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=410555
-    # -ffast-math will cause the client to die with SIGFPE on Alpha
-    OPTIMIZE = $(OPTIMIZEVM)
-  endif
-  endif
-  endif
-
-  SHLIBEXT=so
-  SHLIBCFLAGS=-fPIC -fvisibility=hidden
-  SHLIBLDFLAGS=-shared $(LDFLAGS)
-
-  THREAD_LIBS=-lpthread
-  LIBS=-ldl -lm
-
-  CLIENT_LIBS=$(SDL_LIBS)
-  RENDERER_LIBS = $(SDL_LIBS) -lGL
-
-  ifeq ($(USE_OPENAL),1)
-    ifneq ($(USE_OPENAL_DLOPEN),1)
-      CLIENT_LIBS += -lopenal
-    endif
-  endif
-
-  ifeq ($(USE_CURL),1)
-    ifneq ($(USE_CURL_DLOPEN),1)
-      CLIENT_LIBS += -lcurl
-    endif
-  endif
-
-  ifeq ($(USE_MUMBLE),1)
-    CLIENT_LIBS += -lrt
-  endif
-
-  ifeq ($(USE_FREETYPE),1)
-    BASE_CFLAGS += $(FREETYPE_CFLAGS)
-  endif
-
-  ifeq ($(ARCH),x86)
-    # linux32 make ...
-    BASE_CFLAGS += -m32
-  else
-  ifeq ($(ARCH),ppc64)
-    BASE_CFLAGS += -m64
-  endif
-  endif
-else # ifeq Linux
-
-#############################################################################
-# SETUP AND BUILD -- MAC OS X
-#############################################################################
-
-ifeq ($(PLATFORM),darwin)
-  HAVE_VM_COMPILED=true
-  LIBS = -framework Cocoa
-  CLIENT_LIBS=
-  RENDERER_LIBS=
-  OPTIMIZEVM=
-
-  BASE_CFLAGS = -Wall -Wimplicit -Wstrict-prototypes
-
-  ifeq ($(ARCH),ppc)
-    BASE_CFLAGS += -arch ppc -faltivec -mmacosx-version-min=10.2
-    OPTIMIZEVM += -O3
-  endif
-  ifeq ($(ARCH),ppc64)
-    BASE_CFLAGS += -arch ppc64 -faltivec -mmacosx-version-min=10.2
-  endif
-  ifeq ($(ARCH),x86)
-    OPTIMIZEVM += -march=prescott -mfpmath=sse
-    # x86 vm will crash without -mstackrealign since MMX instructions will be
-    # used no matter what and they corrupt the frame pointer in VM calls
-    BASE_CFLAGS += -arch i386 -m32 -mstackrealign
-  endif
-  ifeq ($(ARCH),x86_64)
-    OPTIMIZEVM += -arch x86_64 -mfpmath=sse
-  endif
-
-  # When compiling on OSX for OSX, we're not cross compiling as far as the
-  # Makefile is concerned, as target architecture is specified as a compiler
-  # argument
-  ifeq ($(COMPILE_PLATFORM),darwin)
-    CROSS_COMPILING=0
-  endif
-
-  ifeq ($(CROSS_COMPILING),1)
-    ifeq ($(ARCH),ppc)
-      CC=powerpc-apple-darwin10-gcc
-      RANLIB=powerpc-apple-darwin10-ranlib
-    else
-      ifeq ($(ARCH),x86)
-        CC=i686-apple-darwin10-gcc
-        RANLIB=i686-apple-darwin10-ranlib
-      else
-        $(error Architecture $(ARCH) is not supported when cross compiling)
-      endif
-    endif
-  else
-    TOOLS_CFLAGS += -DMACOS_X
-  endif
-
-  BASE_CFLAGS += -fno-strict-aliasing -DMACOS_X -fno-common -pipe
-
-  ifeq ($(USE_OPENAL),1)
-    ifneq ($(USE_OPENAL_DLOPEN),1)
-      CLIENT_LIBS += -framework OpenAL
-    endif
-  endif
-
-  ifeq ($(USE_CURL),1)
-    ifneq ($(USE_CURL_DLOPEN),1)
-      CLIENT_LIBS += -lcurl
-    endif
-  endif
-
-  ifeq ($(USE_FREETYPE),1)
-    BASE_CFLAGS += $(FREETYPE_CFLAGS)
-  endif
-
-  BASE_CFLAGS += -D_THREAD_SAFE=1
-
-  ifeq ($(USE_LOCAL_HEADERS),1)
-    BASE_CFLAGS += -I$(SDLHDIR)/include
-  endif
-
-  # We copy sdlmain before ranlib'ing it so that subversion doesn't think
-  #  the file has been modified by each build.
-  LIBSDLMAIN=$(B)/libSDLmain.a
-  LIBSDLMAINSRC=$(LIBSDIR)/macosx/libSDLmain.a
-  CLIENT_LIBS += -framework IOKit \
-    $(LIBSDIR)/macosx/libSDL-1.2.0.dylib
-  RENDERER_LIBS += -framework OpenGL $(LIBSDIR)/macosx/libSDL-1.2.0.dylib
-
-  OPTIMIZEVM += -falign-loops=16
-  OPTIMIZE = $(OPTIMIZEVM) -ffast-math
-
-  SHLIBEXT=dylib
-  SHLIBCFLAGS=-fPIC -fno-common
-  SHLIBLDFLAGS=-dynamiclib $(LDFLAGS) -Wl,-U,_com_altivec
-
-  NOTSHLIBCFLAGS=-mdynamic-no-pic
-
-  ifeq ($(USE_HUMBLENET),1)
-    LIBS += $(LIBSDIR)/macosx/libhumblenet.dylib
-    EXTRA_FILES += $(LIBSDIR)/macosx/libhumblenet.dylib
-    BASE_CFLAGS += -DUSE_HUMBLENET
-    LDFLAGS += -rpath @executable_path/
-  endif
-
-else # ifeq darwin
-
-
-#############################################################################
-# SETUP AND BUILD -- MINGW32
-#############################################################################
-
-ifeq ($(PLATFORM),mingw32)
-
-  ifeq ($(CROSS_COMPILING),1)
-    # If CC is already set to something generic, we probably want to use
-    # something more specific
-    ifneq ($(findstring $(strip $(CC)),cc gcc),)
-      CC=
-    endif
-
-    # We need to figure out the correct gcc and windres
-    ifeq ($(ARCH),x86_64)
-      MINGW_PREFIXES=amd64-mingw32msvc x86_64-w64-mingw32
-    endif
-    ifeq ($(ARCH),x86)
-      MINGW_PREFIXES=i586-mingw32msvc i686-w64-mingw32
-    endif
-
-    ifndef CC
-      CC=$(strip $(foreach MINGW_PREFIX, $(MINGW_PREFIXES), \
-         $(call bin_path, $(MINGW_PREFIX)-gcc)))
-    endif
-
-    ifndef WINDRES
-      WINDRES=$(strip $(foreach MINGW_PREFIX, $(MINGW_PREFIXES), \
-         $(call bin_path, $(MINGW_PREFIX)-windres)))
-    endif
-  else
-    # Some MinGW installations define CC to cc, but don't actually provide cc,
-    # so check that CC points to a real binary and use gcc if it doesn't
-    ifeq ($(call bin_path, $(CC)),)
-      CC=gcc
-    endif
-
-    ifndef WINDRES
-      WINDRES=windres
-    endif
-  endif
-
-  BASE_CFLAGS = -Wall -fno-strict-aliasing -Wimplicit -Wstrict-prototypes \
-    -DUSE_ICON
-
-  # In the absence of wspiapi.h, require Windows XP or later
-  ifeq ($(shell test -e $(CMDIR)/wspiapi.h; echo $$?),1)
-    BASE_CFLAGS += -DWINVER=0x501
-  endif
-
-  ifeq ($(USE_OPENAL),1)
-    CLIENT_CFLAGS += $(OPENAL_CFLAGS)
-    ifneq ($(USE_OPENAL_DLOPEN),1)
-      CLIENT_LDFLAGS += $(OPENAL_LDFLAGS)
-    endif
-  endif
-
-  ifeq ($(ARCH),x86_64)
-    OPTIMIZEVM = -O3 -fno-omit-frame-pointer \
-      -falign-loops=2 -funroll-loops -falign-jumps=2 -falign-functions=2 \
-      -fstrength-reduce
-    OPTIMIZE = $(OPTIMIZEVM) --fast-math
-    HAVE_VM_COMPILED = true
-  endif
-  ifeq ($(ARCH),x86)
-    OPTIMIZEVM = -O3 -march=i586 -fno-omit-frame-pointer \
-      -falign-loops=2 -funroll-loops -falign-jumps=2 -falign-functions=2 \
-      -fstrength-reduce
-    OPTIMIZE = $(OPTIMIZEVM) -ffast-math
-    HAVE_VM_COMPILED = true
-  endif
-
-  SHLIBEXT=dll
-  SHLIBCFLAGS=
-  SHLIBLDFLAGS=-shared $(LDFLAGS)
-
-  BINEXT=.exe
-
-  ifeq ($(CROSS_COMPILING),0)
-    TOOLS_BINEXT=.exe
-  endif
-
-  LIBS= -lws2_32 -lwinmm -lpsapi
-  CLIENT_LDFLAGS += -mwindows
-  CLIENT_LIBS = -lgdi32 -lole32
-  RENDERER_LIBS = -lgdi32 -lole32 -lopengl32
-
-  ifeq ($(USE_FREETYPE),1)
-    BASE_CFLAGS += -Ifreetype2
-  endif
-
-  ifeq ($(USE_CURL),1)
-    CLIENT_CFLAGS += $(CURL_CFLAGS)
-    ifneq ($(USE_CURL_DLOPEN),1)
-      ifeq ($(USE_LOCAL_HEADERS),1)
-        CLIENT_CFLAGS += -DCURL_STATICLIB
-        ifeq ($(ARCH),x86_64)
-          CLIENT_LIBS += $(LIBSDIR)/win64/libcurl.a
-        else
-          CLIENT_LIBS += $(LIBSDIR)/win32/libcurl.a
-        endif
-      else
-        CLIENT_LIBS += $(CURL_LIBS)
-      endif
-    endif
-  endif
-
-  ifeq ($(ARCH),x86)
-    # build 32bit
-    BASE_CFLAGS += -m32
-  else
-    BASE_CFLAGS += -m64
-  endif
-
-  # libmingw32 must be linked before libSDLmain
-  CLIENT_LIBS += -lmingw32
-  RENDERER_LIBS += -lmingw32
-
-  ifeq ($(USE_LOCAL_HEADERS),1)
-    CLIENT_CFLAGS += -I$(SDLHDIR)/include
-    ifeq ($(ARCH),x86)
-    CLIENT_LIBS += $(LIBSDIR)/win32/libSDLmain.a \
-                      $(LIBSDIR)/win32/libSDL.dll.a
-    RENDERER_LIBS += $(LIBSDIR)/win32/libSDLmain.a \
-                      $(LIBSDIR)/win32/libSDL.dll.a
-    SDLDLL=SDL.dll
-    else
-    CLIENT_LIBS += $(LIBSDIR)/win64/libSDLmain.a \
-                      $(LIBSDIR)/win64/libSDL64.dll.a
-    RENDERER_LIBS += $(LIBSDIR)/win64/libSDLmain.a \
-                      $(LIBSDIR)/win64/libSDL64.dll.a
-    SDLDLL=SDL64.dll
-    endif
-  else
-    CLIENT_CFLAGS += $(SDL_CFLAGS)
-    CLIENT_LIBS += $(SDL_LIBS)
-    RENDERER_LIBS += $(SDL_LIBS)
-    SDLDLL=SDL.dll
-  endif
-
-else # ifeq mingw32
-
-#############################################################################
-# SETUP AND BUILD -- FREEBSD
-#############################################################################
-
-ifeq ($(PLATFORM),freebsd)
-
-  # flags
-  BASE_CFLAGS = $(shell env MACHINE_ARCH=$(ARCH) make -f /dev/null -VCFLAGS) \
-    -Wall -fno-strict-aliasing -Wimplicit -Wstrict-prototypes \
-    -DUSE_ICON -DMAP_ANONYMOUS=MAP_ANON
-  CLIENT_CFLAGS += $(SDL_CFLAGS)
-  HAVE_VM_COMPILED = true
-
-  OPTIMIZEVM = -O3 -funroll-loops -fomit-frame-pointer
-  OPTIMIZE = $(OPTIMIZEVM) -ffast-math
-
-  SHLIBEXT=so
-  SHLIBCFLAGS=-fPIC
-  SHLIBLDFLAGS=-shared $(LDFLAGS)
-
-  THREAD_LIBS=-lpthread
-  # don't need -ldl (FreeBSD)
-  LIBS=-lm
-
-  CLIENT_LIBS =
-
-  CLIENT_LIBS += $(SDL_LIBS)
-  RENDERER_LIBS = $(SDL_LIBS) -lGL
-
-  # optional features/libraries
-  ifeq ($(USE_OPENAL),1)
-    ifeq ($(USE_OPENAL_DLOPEN),1)
-      CLIENT_LIBS += $(THREAD_LIBS) -lopenal
-    endif
-  endif
-
-  ifeq ($(USE_CURL),1)
-    ifeq ($(USE_CURL_DLOPEN),1)
-      CLIENT_LIBS += -lcurl
-    endif
-  endif
-
-  # cross-compiling tweaks
-  ifeq ($(ARCH),x86)
-    ifeq ($(CROSS_COMPILING),1)
-      BASE_CFLAGS += -m32
-    endif
-  endif
-  ifeq ($(ARCH),x86_64)
-    ifeq ($(CROSS_COMPILING),1)
-      BASE_CFLAGS += -m64
-    endif
-  endif
-else # ifeq freebsd
-
-#############################################################################
-# SETUP AND BUILD -- OPENBSD
-#############################################################################
-
-ifeq ($(PLATFORM),openbsd)
-
-  BASE_CFLAGS = -Wall -fno-strict-aliasing -Wimplicit -Wstrict-prototypes \
-    -pipe -DUSE_ICON -DMAP_ANONYMOUS=MAP_ANON
-  CLIENT_CFLAGS += $(SDL_CFLAGS)
-
-  OPTIMIZEVM = -O3 -funroll-loops -fomit-frame-pointer
-  OPTIMIZE = $(OPTIMIZEVM) -ffast-math
-
-  ifeq ($(ARCH),x86_64)
-    OPTIMIZEVM = -O3 -fomit-frame-pointer -funroll-loops \
-      -falign-loops=2 -falign-jumps=2 -falign-functions=2 \
-      -fstrength-reduce
-    OPTIMIZE = $(OPTIMIZEVM) -ffast-math
-    HAVE_VM_COMPILED = true
-  else
-  ifeq ($(ARCH),x86)
-    OPTIMIZEVM = -O3 -march=i586 -fomit-frame-pointer \
-      -funroll-loops -falign-loops=2 -falign-jumps=2 \
-      -falign-functions=2 -fstrength-reduce
-    OPTIMIZE = $(OPTIMIZEVM) -ffast-math
-    HAVE_VM_COMPILED=true
-  else
-  ifeq ($(ARCH),ppc)
-    BASE_CFLAGS += -maltivec
-    HAVE_VM_COMPILED=true
-  endif
-  ifeq ($(ARCH),ppc64)
-    BASE_CFLAGS += -maltivec
-    HAVE_VM_COMPILED=true
-  endif
-  ifeq ($(ARCH),sparc64)
-    OPTIMIZE += -mtune=ultrasparc3 -mv8plus
-    OPTIMIZEVM += -mtune=ultrasparc3 -mv8plus
-    HAVE_VM_COMPILED=true
-  endif
-  ifeq ($(ARCH),alpha)
-    # According to http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=410555
-    # -ffast-math will cause the client to die with SIGFPE on Alpha
-    OPTIMIZE = $(OPTIMIZEVM)
-  endif
-  endif
-  endif
-
-  ifeq ($(USE_CURL),1)
-    CLIENT_CFLAGS += $(CURL_CFLAGS)
-    USE_CURL_DLOPEN=0
-  endif
-
-  # no shm_open on OpenBSD
-  USE_MUMBLE=0
-
-  SHLIBEXT=so
-  SHLIBCFLAGS=-fPIC
-  SHLIBLDFLAGS=-shared $(LDFLAGS)
-
-  THREAD_LIBS=-lpthread
-  LIBS=-lm
-
-  CLIENT_LIBS =
-
-  CLIENT_LIBS += $(SDL_LIBS)
-  RENDERER_LIBS = $(SDL_LIBS) -lGL
-
-  ifeq ($(USE_OPENAL),1)
-    ifneq ($(USE_OPENAL_DLOPEN),1)
-      CLIENT_LIBS += $(THREAD_LIBS) -lopenal
-    endif
-  endif
-
-  ifeq ($(USE_CURL),1)
-    ifneq ($(USE_CURL_DLOPEN),1)
-      CLIENT_LIBS += -lcurl
-    endif
-  endif
-else # ifeq openbsd
-
-#############################################################################
-# SETUP AND BUILD -- NETBSD
-#############################################################################
-
-ifeq ($(PLATFORM),netbsd)
-
-  LIBS=-lm
-  SHLIBEXT=so
-  SHLIBCFLAGS=-fPIC
-  SHLIBLDFLAGS=-shared $(LDFLAGS)
-  THREAD_LIBS=-lpthread
-
-  BASE_CFLAGS = -Wall -fno-strict-aliasing -Wimplicit -Wstrict-prototypes
-
-  ifeq ($(ARCH),x86)
-    HAVE_VM_COMPILED=true
-  endif
-
-  BUILD_CLIENT = 0
-else # ifeq netbsd
-
-#############################################################################
-# SETUP AND BUILD -- IRIX
-#############################################################################
-
-ifeq ($(PLATFORM),irix64)
-
-  ARCH=mips
-
-  CC = c99
-  MKDIR = mkdir -p
-
-  BASE_CFLAGS=-Dstricmp=strcasecmp -Xcpluscomm -woff 1185 \
-    -I. -I$(ROOT)/usr/include
-  CLIENT_CFLAGS += $(SDL_CFLAGS)
-  OPTIMIZE = -O3
-
-  SHLIBEXT=so
-  SHLIBCFLAGS=
-  SHLIBLDFLAGS=-shared
-
-  LIBS=-ldl -lm -lgen
-  # FIXME: The X libraries probably aren't necessary?
-  CLIENT_LIBS=-L/usr/X11/$(LIB) $(SDL_LIBS) \
-    -lX11 -lXext -lm
-  RENDERER_LIBS = $(SDL_LIBS) -lGL
-
-else # ifeq IRIX
-
-#############################################################################
-# SETUP AND BUILD -- SunOS
-#############################################################################
-
-ifeq ($(PLATFORM),sunos)
-
-  CC=gcc
-  INSTALL=ginstall
-  MKDIR=gmkdir
-  COPYDIR="/usr/local/share/games/quake3"
-
-  ifneq ($(ARCH),x86)
-    ifneq ($(ARCH),sparc)
-      $(error arch $(ARCH) is currently not supported)
-    endif
-  endif
-
-  BASE_CFLAGS = -Wall -fno-strict-aliasing -Wimplicit -Wstrict-prototypes \
-    -pipe -DUSE_ICON
-  CLIENT_CFLAGS += $(SDL_CFLAGS)
-
-  OPTIMIZEVM = -O3 -funroll-loops
-
-  ifeq ($(ARCH),sparc)
-    OPTIMIZEVM += -O3 \
-      -fstrength-reduce -falign-functions=2 \
-      -mtune=ultrasparc3 -mv8plus -mno-faster-structs
-    HAVE_VM_COMPILED=true
-  else
-  ifeq ($(ARCH),x86)
-    OPTIMIZEVM += -march=i586 -fomit-frame-pointer \
-      -falign-loops=2 -falign-jumps=2 \
-      -falign-functions=2 -fstrength-reduce
-    HAVE_VM_COMPILED=true
-    BASE_CFLAGS += -m32
-    CLIENT_CFLAGS += -I/usr/X11/include/NVIDIA
-    CLIENT_LDFLAGS += -L/usr/X11/lib/NVIDIA -R/usr/X11/lib/NVIDIA
-  endif
-  endif
-
-  OPTIMIZE = $(OPTIMIZEVM) -ffast-math
-
-  SHLIBEXT=so
-  SHLIBCFLAGS=-fPIC
-  SHLIBLDFLAGS=-shared $(LDFLAGS)
-
-  THREAD_LIBS=-lpthread
-  LIBS=-lsocket -lnsl -ldl -lm
-
-  BOTCFLAGS=-O0
-
-  CLIENT_LIBS +=$(SDL_LIBS) -lX11 -lXext -liconv -lm
-  RENDERER_LIBS = $(SDL_LIBS) -lGL
-
-else # ifeq sunos
 
 #############################################################################
 # SETUP AND BUILD -- JS
@@ -904,13 +98,11 @@ ifeq ($(PLATFORM),js)
 
 # debug optimize flags: --closure 0 --minify 0 -g
 
+  OPTIMIZEVM += -O2
   OPTIMIZEVM += --memory-init-file 0
   OPTIMIZE = $(OPTIMIZEVM)
 
-  BUILD_SERVER=0
   BUILD_STANDALONE=1
-
-#  HAVE_VM_COMPILED=true
 
   USE_CURL=0
   USE_CODEC_VORBIS=0
@@ -921,14 +113,11 @@ ifeq ($(PLATFORM),js)
   USE_RENDERER_DLOPEN=0
   USE_LOCAL_HEADERS=0
 
-  LIBSYSCOMMON=$(SYSDIR)/sys_common.wasm
-  LIBSYSBROWSER=$(SYSDIR)/sys_browser.wasm
-  LIBSYSNODE=$(SYSDIR)/sys_node.wasm
-  LIBVMJS=$(CMDIR)/vm_js.wasm
-
-ifeq ($(USE_HUMBLENET),1)
+  LIBSYSCOMMON=$(SYSDIR)/sys_common.js
+  LIBSYSBROWSER=$(SYSDIR)/sys_browser.js
+  LIBSYSNODE=$(SYSDIR)/sys_node.js
+  LIBVMJS=$(CMDIR)/vm_js.js
   BASE_CFLAGS += -DUSE_HUMBLENET
-endif
 
   CLIENT_LDFLAGS += --js-library $(LIBSYSCOMMON) \
     --js-library $(LIBSYSBROWSER) \
@@ -943,62 +132,17 @@ endif
     -s ERROR_ON_UNDEFINED_SYMBOLS=0 \
     $(OPTIMIZE)
 
-  SERVER_LDFLAGS += --js-library $(LIBSYSCOMMON) \
-    --js-library $(LIBSYSNODE) \
-    -s INVOKE_RUN=1 \
-    -s EXPORTED_FUNCTIONS="['_main', '_malloc', '_free', '_atof', '_fopen', '_Com_Printf', '_Com_Error', '_Com_ProxyCallback', '_Com_GetCDN', '_Com_GetManifest', '_Z_Malloc', '_Z_Free', '_S_Malloc', '_Cvar_Set', '_Cvar_VariableString', '_VM_GetCurrent', '_VM_SetCurrent', '_VM_Syscall']" \
-    -s LEGACY_GL_EMULATION=1 \
-    -s RESERVED_FUNCTION_POINTERS=1 \
-    -s TOTAL_MEMORY=234881024 \
-    -s EXPORT_NAME=\"ioq3ded\" \
-    $(OPTIMIZE)
-
-ifeq ($(HAVE_VM_COMPILED),true)
-  CLIENT_LDFLAGS += --js-library $(LIBVMJS)
-  SERVER_LDFLAGS += --js-library $(LIBVMJS)
-endif
-
-  SHLIBEXT=js
+  SHLIBEXT=wasm
   SHLIBNAME=.$(SHLIBEXT)
   SHLIBLDFLAGS=$(LDFLAGS) \
     -s INVOKE_RUN=0 \
     -s EXPORTED_FUNCTIONS="['_vmMain', '_dllEntry']" \
     -s SIDE_MODULE=1 \
     $(OPTIMIZE)
-
-else # ifeq js
-
-#############################################################################
-# SETUP AND BUILD -- GENERIC
-#############################################################################
-  BASE_CFLAGS=
-
-  SHLIBEXT=so
-  SHLIBCFLAGS=-fPIC
-  SHLIBLDFLAGS=-shared
-
-endif #Linux
-endif #darwin
-endif #mingw32
-endif #FreeBSD
-endif #OpenBSD
-endif #NetBSD
-endif #IRIX
-endif #SunOS
 endif #js
 
-ifndef CC
-  CC=gcc
-endif
-
-ifndef RANLIB
-  RANLIB=ranlib
-endif
-
-ifneq ($(HAVE_VM_COMPILED),true)
-  BASE_CFLAGS += -DNO_VM_COMPILED
-  BUILD_GAME_QVM=0
-endif
+BASE_CFLAGS += -DNO_VM_COMPILED
+BUILD_GAME_QVM=0
 
 TARGETS =
 
@@ -1014,9 +158,6 @@ ifndef SHLIBNAME
   SHLIBNAME=$(ARCH).$(SHLIBEXT)
 endif
 
-ifneq ($(BUILD_SERVER),0)
-  TARGETS += $(B)/$(SERVERBIN)$(FULLBINEXT)
-endif
 
 ifneq ($(BUILD_CLIENT),0)
   ifneq ($(USE_RENDERER_DLOPEN),0)
@@ -1111,7 +252,6 @@ endif
 
 ifeq ($(USE_VOIP),1)
   CLIENT_CFLAGS += -DUSE_VOIP
-  SERVER_CFLAGS += -DUSE_VOIP
   ifeq ($(USE_INTERNAL_SPEEX),1)
     CLIENT_CFLAGS += -DFLOATING_POINT -DUSE_ALLOCA -I$(SPEEXDIR)/include
   else
@@ -1280,12 +420,13 @@ all: debug release
 debug:
 	@$(MAKE) targets B=$(BD) CFLAGS="$(CFLAGS) $(BASE_CFLAGS) $(DEPEND_CFLAGS)" \
 	  OPTIMIZE="$(DEBUG_CFLAGS)" OPTIMIZEVM="$(DEBUG_CFLAGS)" \
-	  CLIENT_CFLAGS="$(CLIENT_CFLAGS)" SERVER_CFLAGS="$(SERVER_CFLAGS)" V=$(V)
+	  CLIENT_CFLAGS="$(CLIENT_CFLAGS)"
 
 release:
 	@$(MAKE) targets B=$(BR) CFLAGS="$(CFLAGS) $(BASE_CFLAGS) $(DEPEND_CFLAGS)" \
 	  OPTIMIZE="-DNDEBUG $(OPTIMIZE)" OPTIMIZEVM="-DNDEBUG $(OPTIMIZEVM)" \
-	  CLIENT_CFLAGS="$(CLIENT_CFLAGS)" SERVER_CFLAGS="$(SERVER_CFLAGS)" V=$(V)
+	  CLIENT_CFLAGS="$(CLIENT_CFLAGS)"
+	@sed -i '' -e "s/'ioquake3.wasm'/window.quakewasm/" build/release-js-js/ioquake3.js
 
 ifneq ($(call bin_path, tput),)
   TERM_COLUMNS=$(shell echo $$((`tput cols`-4)))
@@ -1314,8 +455,6 @@ targets: makedirs
 	@echo "  PLATFORM: $(PLATFORM)"
 	@echo "  ARCH: $(ARCH)"
 	@echo "  VERSION: $(VERSION)"
-	@echo "  COMPILE_PLATFORM: $(COMPILE_PLATFORM)"
-	@echo "  COMPILE_ARCH: $(COMPILE_ARCH)"
 	@echo "  CC: $(CC)"
 ifeq ($(PLATFORM),mingw32)
 	@echo "  WINDRES: $(WINDRES)"
@@ -1355,17 +494,10 @@ ifneq ($(TARGETS),)
 endif
 
 $(B).zip: $(TARGETS)
-ifeq ($(PLATFORM),darwin)
-  ifdef ARCHIVE
-	@("./make-macosx-app.sh" release $(ARCH); if [ "$$?" -eq 0 ] && [ -d "$(B)/ioquake3.app" ]; then rm -f $@; cd $(B) && zip --symlinks -r9 ../../$@ `find "ioquake3.app" -print | sed -e "s!$(B)/!!g"`; else rm -f $@; cd $(B) && zip -r9 ../../$@ $(NAKED_TARGETS); fi)
-  endif
-endif
-ifneq ($(PLATFORM),darwin)
   ifdef ARCHIVE
 	@rm -f $@
 	@(cd $(B) && zip -r9 ../../$@ $(NAKED_TARGETS))
   endif
-endif
 
 makedirs:
 	@if [ ! -d $(BUILD_DIR) ];then $(MKDIR) $(BUILD_DIR);fi
@@ -2073,41 +1205,7 @@ Q3OBJ += \
   $(B)/client/zutil.o
 endif
 
-ifeq ($(HAVE_VM_COMPILED),true)
-  ifneq ($(findstring $(ARCH),x86 x86_64),)
-    Q3OBJ += \
-      $(B)/client/vm_x86.o
-  endif
-  ifneq ($(findstring $(ARCH),ppc ppc64),)
-    Q3OBJ += $(B)/client/vm_powerpc.o $(B)/client/vm_powerpc_asm.o
-  endif
-  ifeq ($(ARCH),sparc)
-    Q3OBJ += $(B)/client/vm_sparc.o
-  endif
-endif
-
-ifeq ($(PLATFORM),mingw32)
-  Q3OBJ += \
-    $(B)/client/win_resource.o \
-    $(B)/client/sys_win32.o
-else
-ifneq ($(PLATFORM),js)
-  Q3OBJ += \
-    $(B)/client/sys_unix.o
-endif
-endif
-
-ifeq ($(PLATFORM),darwin)
-  Q3OBJ += \
-    $(B)/client/sys_osx.o
-endif
-
-ifeq ($(PLATFORM),js)
-ifeq ($(USE_HUMBLENET),1)
-  Q3OBJ += \
-    $(B)/client/humblenet_asmjs_amalgam.o
-endif
-endif
+Q3OBJ += $(B)/client/humblenet_asmjs_amalgam.o
 
 ifeq ($(USE_MUMBLE),1)
   Q3OBJ += \
@@ -2254,44 +1352,9 @@ Q3DOBJ += \
   $(B)/ded/zutil.o
 endif
 
-ifeq ($(HAVE_VM_COMPILED),true)
-  ifneq ($(findstring $(ARCH),x86 x86_64),)
-    Q3DOBJ += \
-      $(B)/ded/vm_x86.o
-  endif
-  ifneq ($(findstring $(ARCH),ppc ppc64),)
-    Q3DOBJ += $(B)/ded/vm_powerpc.o $(B)/ded/vm_powerpc_asm.o
-  endif
-  ifeq ($(ARCH),sparc)
-    Q3DOBJ += $(B)/ded/vm_sparc.o
-  endif
-endif
+Q3DOBJ += $(B)/ded/con_tty.o
 
-ifeq ($(PLATFORM),mingw32)
-  Q3DOBJ += \
-    $(B)/ded/win_resource.o \
-    $(B)/ded/sys_win32.o \
-    $(B)/ded/con_win32.o
-else
-  Q3DOBJ += \
-    $(B)/ded/con_tty.o
-ifneq ($(PLATFORM),js)
-  Q3DOBJ += \
-    $(B)/ded/sys_unix.o
-endif
-endif
-
-ifeq ($(PLATFORM),darwin)
-  Q3DOBJ += \
-    $(B)/ded/sys_osx.o
-endif
-
-ifeq ($(PLATFORM),js)
-ifeq ($(USE_HUMBLENET),1)
-  Q3DOBJ += \
-    $(B)/ded/humblenet_asmjs_amalgam.o
-endif
-endif
+Q3DOBJ += $(B)/ded/humblenet_asmjs_amalgam.o
 
 $(B)/$(SERVERBIN)$(FULLBINEXT): $(Q3DOBJ) $(LIBSYSCOMMON) $(LIBSYSNODE) $(LIBVMJS)
 	$(echo_cmd) "LD $@"
@@ -2710,14 +1773,6 @@ $(B)/ded/%.o: $(SYSDIR)/%.rc
 $(B)/ded/%.o: $(NDIR)/%.c
 	$(DO_DED_CC)
 
-# Extra dependencies to ensure the git version is incorporated
-ifeq ($(USE_GIT),1)
-  $(B)/client/cl_console.o : .git/index
-  $(B)/client/common.o : .git/index
-  $(B)/ded/common.o : .git/index
-endif
-
-
 #############################################################################
 ## GAME MODULE RULES
 #############################################################################
@@ -2809,111 +1864,6 @@ TOOLSOBJ = $(LBURGOBJ) $(Q3CPPOBJ) $(Q3RCCOBJ) $(Q3LCCOBJ) $(Q3ASMOBJ)
 STRINGOBJ = $(Q3R2STRINGOBJ)
 
 
-copyfiles: release
-	@if [ ! -d $(COPYDIR)/$(BASEGAME) ]; then echo "You need to set COPYDIR to where your Quake3 data is!"; fi
-ifneq ($(BUILD_GAME_SO),0)
-  ifneq ($(BUILD_BASEGAME),0)
-	-$(MKDIR) -p -m 0755 $(COPYDIR)/$(BASEGAME)
-  endif
-  ifneq ($(BUILD_MISSIONPACK),0)
-	-$(MKDIR) -p -m 0755 $(COPYDIR)/$(MISSIONPACK)
-  endif
-endif
-
-ifneq ($(BUILD_CLIENT),0)
-	$(INSTALL) $(STRIP_FLAG) -m 0755 $(BR)/$(CLIENTBIN)$(FULLBINEXT) $(COPYBINDIR)/$(CLIENTBIN)$(FULLBINEXT)
-  ifneq ($(USE_RENDERER_DLOPEN),0)
-	$(INSTALL) $(STRIP_FLAG) -m 0755 $(BR)/renderer_opengl1_$(SHLIBNAME) $(COPYBINDIR)/renderer_opengl1_$(SHLIBNAME)
-    ifneq ($(BUILD_RENDERER_OPENGL2),0)
-	$(INSTALL) $(STRIP_FLAG) -m 0755 $(BR)/renderer_opengl2_$(SHLIBNAME) $(COPYBINDIR)/renderer_opengl2_$(SHLIBNAME)
-    endif
-  else
-    ifneq ($(BUILD_RENDERER_OPENGL2),0)
-	$(INSTALL) $(STRIP_FLAG) -m 0755 $(BR)/$(CLIENTBIN)_opengl2$(FULLBINEXT) $(COPYBINDIR)/$(CLIENTBIN)_opengl2$(FULLBINEXT)
-    endif
-  endif
-endif
-
-ifneq ($(BUILD_SERVER),0)
-	@if [ -f $(BR)/$(SERVERBIN)$(FULLBINEXT) ]; then \
-		$(INSTALL) $(STRIP_FLAG) -m 0755 $(BR)/$(SERVERBIN)$(FULLBINEXT) $(COPYBINDIR)/$(SERVERBIN)$(FULLBINEXT); \
-	fi
-endif
-
-ifneq ($(BUILD_GAME_SO),0)
-  ifneq ($(BUILD_BASEGAME),0)
-	$(INSTALL) $(STRIP_FLAG) -m 0755 $(BR)/$(BASEGAME)/cgame$(SHLIBNAME) \
-					$(COPYDIR)/$(BASEGAME)/.
-	$(INSTALL) $(STRIP_FLAG) -m 0755 $(BR)/$(BASEGAME)/qagame$(SHLIBNAME) \
-					$(COPYDIR)/$(BASEGAME)/.
-	$(INSTALL) $(STRIP_FLAG) -m 0755 $(BR)/$(BASEGAME)/ui$(SHLIBNAME) \
-					$(COPYDIR)/$(BASEGAME)/.
-  endif
-  ifneq ($(BUILD_MISSIONPACK),0)
-	$(INSTALL) $(STRIP_FLAG) -m 0755 $(BR)/$(MISSIONPACK)/cgame$(SHLIBNAME) \
-					$(COPYDIR)/$(MISSIONPACK)/.
-	$(INSTALL) $(STRIP_FLAG) -m 0755 $(BR)/$(MISSIONPACK)/qagame$(SHLIBNAME) \
-					$(COPYDIR)/$(MISSIONPACK)/.
-	$(INSTALL) $(STRIP_FLAG) -m 0755 $(BR)/$(MISSIONPACK)/ui$(SHLIBNAME) \
-					$(COPYDIR)/$(MISSIONPACK)/.
-  endif
-endif
-
-clean: clean-debug clean-release
-ifeq ($(PLATFORM),mingw32)
-	@$(MAKE) -C $(NSISDIR) clean
-else
-	@$(MAKE) -C $(LOKISETUPDIR) clean
-endif
-
-clean-debug:
-	@$(MAKE) clean2 B=$(BD)
-
-clean-release:
-	@$(MAKE) clean2 B=$(BR)
-
-clean2:
-	@echo "CLEAN $(B)"
-	@rm -f $(OBJ)
-	@rm -f $(OBJ_D_FILES)
-	@rm -f $(STRINGOBJ)
-	@rm -f $(TARGETS)
-
-toolsclean: toolsclean-debug toolsclean-release
-
-toolsclean-debug:
-	@$(MAKE) toolsclean2 B=$(BD)
-
-toolsclean-release:
-	@$(MAKE) toolsclean2 B=$(BR)
-
-toolsclean2:
-	@echo "TOOLS_CLEAN $(B)"
-	@rm -f $(TOOLSOBJ)
-	@rm -f $(TOOLSOBJ_D_FILES)
-	@rm -f $(LBURG) $(DAGCHECK_C) $(Q3RCC) $(Q3CPP) $(Q3LCC) $(Q3ASM)
-
-distclean: clean toolsclean
-	@rm -rf $(BUILD_DIR)
-
-installer: release
-ifeq ($(PLATFORM),mingw32)
-	@$(MAKE) VERSION=$(VERSION) -C $(NSISDIR) V=$(V) \
-		SDLDLL=$(SDLDLL) \
-		USE_RENDERER_DLOPEN=$(USE_RENDERER_DLOPEN) \
-		USE_OPENAL_DLOPEN=$(USE_OPENAL_DLOPEN) \
-		USE_CURL_DLOPEN=$(USE_CURL_DLOPEN) \
-		USE_INTERNAL_OPUS=$(USE_INTERNAL_OPUS) \
-		USE_INTERNAL_SPEEX=$(USE_INTERNAL_SPEEX) \
-		USE_INTERNAL_ZLIB=$(USE_INTERNAL_ZLIB) \
-		USE_INTERNAL_JPEG=$(USE_INTERNAL_JPEG)
-else
-	@$(MAKE) VERSION=$(VERSION) -C $(LOKISETUPDIR) V=$(V)
-endif
-
-dist:
-	git archive --format zip --output $(CLIENTBIN)-$(VERSION).zip HEAD
-
 #############################################################################
 # DEPENDENCIES
 #############################################################################
@@ -2922,15 +1872,4 @@ ifneq ($(B),)
   OBJ_D_FILES=$(filter %.d,$(OBJ:%.o=%.d))
   TOOLSOBJ_D_FILES=$(filter %.d,$(TOOLSOBJ:%.o=%.d))
   -include $(OBJ_D_FILES) $(TOOLSOBJ_D_FILES)
-endif
-
-.PHONY: all clean clean2 clean-debug clean-release copyfiles \
-	debug default dist distclean installer makedirs \
-	release targets \
-	toolsclean toolsclean2 toolsclean-debug toolsclean-release \
-	$(OBJ_D_FILES) $(TOOLSOBJ_D_FILES)
-
-# If the target name contains "clean", don't do a parallel build
-ifneq ($(findstring clean, $(MAKECMDGOALS)),)
-.NOTPARALLEL:
 endif
