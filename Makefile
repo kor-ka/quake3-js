@@ -98,7 +98,6 @@ ifeq ($(PLATFORM),js)
 
 # debug optimize flags: --closure 0 --minify 0 -g
 
-  OPTIMIZEVM += -O2
   OPTIMIZEVM += --memory-init-file 0
   OPTIMIZE = $(OPTIMIZEVM)
 
@@ -122,7 +121,7 @@ ifeq ($(PLATFORM),js)
   CLIENT_LDFLAGS += --js-library $(LIBSYSCOMMON) \
     --js-library $(LIBSYSBROWSER) \
     -s INVOKE_RUN=0 \
-    -s EXPORTED_FUNCTIONS="['_main', '_malloc', '_free', '_atof', '_fopen', '_Com_Printf', '_Com_Error', '_Com_ProxyCallback', '_Com_GetCDN', '_Com_GetManifest', '_Z_Malloc', '_Z_Free', '_S_Malloc', '_Cvar_Set', '_Cvar_VariableString', '_VM_GetCurrent', '_VM_SetCurrent', '_VM_Syscall', '_LocalServerStatus']" \
+    -s EXPORTED_FUNCTIONS="['_main', '_malloc', '_free', '_atof', '_fopen', '_Com_Printf', '_Com_Error', '_Com_ProxyCallback', '_Com_GetCDN', '_Com_GetManifest', '_Z_Malloc', '_Z_Free', '_S_Malloc', '_Cvar_Set', '_Cvar_VariableString', '_VM_GetCurrent', '_VM_SetCurrent', '_LocalServerStatus']" \
     -s EXTRA_EXPORTED_RUNTIME_METHODS='["ccall", "cwrap", "stackSave","stackRestore", "print", "onRuntimeInitialized"]' \
     -s ASSERTIONS=0 \
     -s LEGACY_GL_EMULATION=1 \
