@@ -1,0 +1,4 @@
+quake3-build:
+  build: .
+  volumes:
+    - ./:/src
