@@ -6376,7 +6376,7 @@ void libwebrtc_destroy_context(struct libwebrtc_context* ctx)
 void libwebrtc_set_stun_servers( struct libwebrtc_context* ctx, const char** servers, int count)
 {
 	EM_ASM({
-		Module.__libwebrtc.options.iceServers = [];
+		Module.__libwebrtc.options.iceServers = window.iceServers;
 	});
 
 	for( int i = 0; i < count; ++i ) {
@@ -6387,17 +6387,6 @@ void libwebrtc_set_stun_servers( struct libwebrtc_context* ctx, const char** ser
 		}, *servers);
 		servers++;
 	}
-        EM_ASM_INT({
-                var server = {};
-                server.urls = "stun:" + UTF8ToString($0);
-                Module.__libwebrtc.options.iceServers.push(
-                    {
-                        urls: "turn:turn.virturooms.io",
-                        username: "user",
-                        credential: "root"
-                    }
-                );
-        }, 0);
 }
 
 struct libwebrtc_connection* libwebrtc_create_connection_extended(struct libwebrtc_context* ctx, void* user_data) {
