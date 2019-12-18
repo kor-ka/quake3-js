@@ -98,7 +98,7 @@ ifeq ($(PLATFORM),js)
 
 # debug optimize flags: --closure 0 --minify 0 -g
 
-  OPTIMIZEVM += --memory-init-file 0
+  OPTIMIZEVM += --memory-init-file 0 -O3
   OPTIMIZE = $(OPTIMIZEVM)
 
   BUILD_STANDALONE=1
@@ -425,7 +425,11 @@ release:
 	@$(MAKE) targets B=$(BR) CFLAGS="$(CFLAGS) $(BASE_CFLAGS) $(DEPEND_CFLAGS)" \
 	  OPTIMIZE="-DNDEBUG $(OPTIMIZE)" OPTIMIZEVM="-DNDEBUG $(OPTIMIZEVM)" \
 	  CLIENT_CFLAGS="$(CLIENT_CFLAGS)"
-	@sed -i '' -e "s/'ioquake3.wasm'/window.quakewasm/" build/release-js-js/ioquake3.js
+	@sed -i "s/[\"|']ioquake3.wasm[\"|']/window.quakewasm/" build/release-js-js/ioquake3.js
+	@sed -i "s/audioSrc.playbackRate.value\s*=\s*src.playbackRate;*/try\{audioSrc.playbackRate.value=src.playbackRate\;\}catch(e)\{console.warn(e)\}/g" build/release-js-js/ioquake3.js
+	@sed -i "s/audioSrc.start(startTime,\s*startOffset);*/try{audioSrc.start(startTime,startOffset);}catch(e) {console.warn(e);}/g" build/release-js-js/ioquake3.js
+	@sed -i "s/audioSrc.stop();*/try {audioSrc.stop();}catch(e) {console.warn(e);}/g" build/release-js-js/ioquake3.js
+	@sed -i "s/src.audioQueue\[i\].stop();*/try {src.audioQueue[i].stop();}catch(e) {console.warn(e);}/g" build/release-js-js/ioquake3.js
 
 ifneq ($(call bin_path, tput),)
   TERM_COLUMNS=$(shell echo $$((`tput cols`-4)))
