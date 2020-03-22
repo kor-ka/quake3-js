@@ -3192,7 +3192,7 @@ int humblenet_connection_write(Connection *connection, const void *buf, uint32_t
 		case HUMBLENET_CONNECTION_CONNECTED:
 			assert(connection->socket != NULL);
 
-			const char* use_relay = humblenet_get_hint("p2p_use_relay");
+			const char* use_relay = humblenet_get_hint("userelay");
 			if( use_relay && *use_relay == '1' ) {
 				if( ! sendP2PRelayData( humbleNetState.p2pConn.get(), connection->otherPeer, buf, bufsize ) ) {
 					return -1;
@@ -4163,8 +4163,10 @@ HUMBLENET_API ha_bool HUMBLENET_CALL humblenet_set_hint(const char* name, const 
 	auto it = hints.find( name );
 	if( it != hints.end() )
 		it->second = value;
-	else
-		hints.insert( std::make_pair( name, value ) );
+	else {
+		std::pair <std::string,std::string> pair = std::make_pair(name, value);
+		hints.insert(pair);
+        }
 }
 
 /*

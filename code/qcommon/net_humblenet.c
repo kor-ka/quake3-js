@@ -97,7 +97,7 @@ void HUMBLENET_Init (void)
 
     net_peer_relay = Cvar_Get("net_peer_relay", "0", CVAR_ARCHIVE);
     if( net_peer_relay->integer )
-        humblenet_set_hint("p2p_use_relay", net_peer_relay->string);
+        humblenet_set_hint("userelay", net_peer_relay->string);
 	
 #ifdef EMSCRIPTEN
 	// disconnect client when user closes tab
@@ -126,7 +126,7 @@ void HUMBLENET_Update(void) {
     }
 
     if( net_peer_relay->modified ) {
-        humblenet_set_hint("p2p_use_relay", net_peer_relay->string);
+        humblenet_set_hint("userelay", net_peer_relay->string);
         net_peer_relay->modified = qfalse;
     }
 }

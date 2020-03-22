@@ -1,4 +1,4 @@
-FROM trzeci/emscripten:sdk-tag-1.38.31-64bit
+FROM trzeci/emscripten:1.39.8-fastcomp
 
 WORKDIR /src
 
