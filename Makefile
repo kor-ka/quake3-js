@@ -121,15 +121,12 @@ ifeq ($(PLATFORM),js)
   CLIENT_LDFLAGS += --js-library $(LIBSYSCOMMON) \
     --js-library $(LIBSYSBROWSER) \
     -s INVOKE_RUN=0 \
-    -s EXPORTED_FUNCTIONS="['_main', '_malloc', '_free', '_atof', '_fopen', '_Com_Printf', '_Com_Error', '_Com_ProxyCallback', '_Com_GetCDN', '_Com_GetManifest', '_Z_Malloc', '_Z_Free', '_S_Malloc', '_Cvar_Set', '_Cvar_VariableString', '_VM_GetCurrent', '_VM_SetCurrent', '_LocalServerStatus']" \
-    -s EXTRA_EXPORTED_RUNTIME_METHODS='["ccall", "cwrap", "stackSave","stackRestore", "print", "onRuntimeInitialized", "callMain"]' \
-    -s ASSERTIONS=0 \
+    -s EXPORTED_FUNCTIONS="['_main', '_malloc', '_free', '_atof', '_fopen', '_Com_Printf', '_Com_Error', '_Com_ProxyCallback', '_Com_GetCDN', '_Com_GetManifest', '_Z_Malloc', '_Z_Free', '_S_Malloc', '_Cvar_Set', '_Cvar_VariableString', '_VM_GetCurrent', '_VM_SetCurrent', '_VM_Syscall', '_LocalServerStatus']" \
+    -s OUTLINING_LIMIT=20000 \
     -s LEGACY_GL_EMULATION=1 \
     -s RESERVED_FUNCTION_POINTERS=1 \
-    -s TOTAL_MEMORY=512MB \
+    -s TOTAL_MEMORY=234881024 \
     -s EXPORT_NAME=\"ioq3\" \
-    -s ERROR_ON_UNDEFINED_SYMBOLS=0 \
-    -lidbfs.js \
     $(OPTIMIZE)
 
   SHLIBEXT=wasm

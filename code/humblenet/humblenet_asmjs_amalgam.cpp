@@ -6242,10 +6242,10 @@ struct libwebrtc_context* libwebrtc_create_context( lwrtc_callback_function call
 				sdp += 'a=candidate:0 1 UDP 2128609534 0.0.0.0 0 typ host\n';
 				//sdp += 'a=candidate:0 2 UDP 2128609534 135.27.116.245 62789 typ host\n';
 			}
-			var stack = Module.stackSave();
+			var stack = Runtime.stackSave();
 			// local description //
 			libwebrtc.on_event( ctx, this.id, 0, 1, this.user_data, allocate(intArrayFromString(sdp), 'i8', ALLOC_STACK), sdp.length);
-			Module.stackRestore(stack);
+			Runtime.stackRestore(stack);
 		};
 		libwebrtc.on_candidate = function(event){
 			if( !event )
@@ -6266,10 +6266,10 @@ struct libwebrtc_context* libwebrtc_create_context( lwrtc_callback_function call
 			Module.print("ice candidate " + event.candidate.candidate + " -- " + this.iceGatheringState);
 
 			if( this.trickle ) {
-				var stack = Module.stackSave();
+				var stack = Runtime.stackSave();
 				// ice_candidate //
 				libwebrtc.on_event( ctx, this.id, 0, 2, this.user_data, allocate(intArrayFromString(event.candidate.candidate), 'i8', ALLOC_STACK), event.candidate.candidate.length);
-				Module.stackRestore(stack);
+				Runtime.stackRestore(stack);
 			}
 		};
 		libwebrtc.on_signalstatechange = function(event){
@@ -6284,7 +6284,7 @@ struct libwebrtc_context* libwebrtc_create_context( lwrtc_callback_function call
 				libwebrtc.on_event( ctx, this.id, 0, 3, this.user_data, 0, 0);
 		};
 		libwebrtc.on_disconnected = function(event){
-			var stack = Module.stackSave();
+			var stack = Runtime.stackSave();
 			// disconnected //
 			libwebrtc.on_event( ctx, this.id, 0, 4, this.user_data, 0, 0);
 		};
@@ -6308,20 +6308,20 @@ struct libwebrtc_context* libwebrtc_create_context( lwrtc_callback_function call
 		};
 		libwebrtc.on_channel_accept = function(event){
 			Module.print("accept");
-			var stack = Module.stackSave();
+			var stack = Runtime.stackSave();
 			// channel accepted //
 			libwebrtc.on_event(ctx, this.parent.id, this._id, 5, this.user_data, allocate(intArrayFromString(this.label), 'i8', ALLOC_STACK), this.label.length);
-			Module.stackRestore(stack);
+			Runtime.stackRestore(stack);
 		};
 		libwebrtc.on_channel_connected = function(event){
 			Module.print("connect");
-			var stack = Module.stackSave();
+			var stack = Runtime.stackSave();
 			// channel connected //
 			libwebrtc.on_event(ctx, this.parent.id, this._id, 6, this.user_data, allocate(intArrayFromString(this.label), 'i8', ALLOC_STACK), this.label.length);
-			Module.stackRestore(stack);
+			Runtime.stackRestore(stack);
 		};
 		libwebrtc.on_channel_message = function(event){
-			var stack = Module.stackSave();
+			var stack = Runtime.stackSave();
 			var len = event.data.byteLength;
 			var ptr = allocate( len, 'i8', ALLOC_STACK);
 
@@ -6335,13 +6335,13 @@ struct libwebrtc_context* libwebrtc_create_context( lwrtc_callback_function call
 
 			// channel data //
 			libwebrtc.on_event( ctx, this.parent.id, this._id, 7, this.user_data, ptr, len);
-			Module.stackRestore(stack);
+			Runtime.stackRestore(stack);
 		};
 		libwebrtc.on_channel_closed = function(event){
-			var stack = Module.stackSave();
+			var stack = Runtime.stackSave();
 			// close channel //
 			libwebrtc.on_event(ctx, this.parent.id, this._id, 7, this.user_data, 0, 0);
-			Module.stackRestore(stack);
+			Runtime.stackRestore(stack);
 		};
 		libwebrtc.destroy = function() {
 			libwebrtc.connections.set( this.id, undefined );
@@ -6781,16 +6781,16 @@ struct libwebsocket_context* libwebsocket_create_context_extended( struct lws_co
 			}
 		};
 		libwebsocket.on_connect = function() {
-			var stack = Module.stackSave();
+			var stack = Runtime.stackSave();
 			// filter protocol //
 			console.log( 0, ctx, this.id, 9, this.user_data, allocate(intArrayFromString(this.protocol), 'i8', ALLOC_STACK), this.protocol.length );
 			libwebsocket.on_event( 0, ctx, this.id, 9, this.user_data, allocate(intArrayFromString(this.protocol), 'i8', ALLOC_STACK), this.protocol.length );
 			// client established
 			libwebsocket.on_event( this.protocol_id, ctx, this.id, 3, this.user_data, 0, 0 );
-			Module.stackRestore(stack);
+			Runtime.stackRestore(stack);
 		};
 		libwebsocket.on_message = function(event) {
-			var stack = Module.stackSave();
+			var stack = Runtime.stackSave();
 			var len = event.data.byteLength;
 			var ptr = allocate( len, 'i8', ALLOC_STACK);
 
@@ -6803,7 +6803,7 @@ struct libwebsocket_context* libwebsocket_create_context_extended( struct lws_co
 
 			// client receive //
 			libwebsocket.on_event( this.protocol_id, ctx, this.id, 6, this.user_data, ptr, len );
-			Module.stackRestore(stack);
+			Runtime.stackRestore(stack);
 		};
 		libwebsocket.on_close = function() {
 			// closed //
